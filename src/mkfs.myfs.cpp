@@ -42,6 +42,12 @@ void createBoot(BlockDevice bd) {
     
     bd.write(0, buffer);
     
+    bd.read(0, buffer);
+    
+    int zahl = buffer[17];
+    
+    cout << zahl << endl;
+    
 }
 
 
@@ -53,7 +59,7 @@ int main(int argc, char *argv[]) {
     BlockDevice bd;
     
     
-    //32MB = 33554432 Bytes, Container erhält ein Block mit der Größe von 32MB
+    //33MB = 33554432 Bytes, Container erhält ein Block mit der Größe von 32MB
     bd.operator=(BlockDevice(33554432));
     
     bd.create("container.bin");
