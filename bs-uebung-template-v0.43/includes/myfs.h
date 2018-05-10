@@ -74,11 +74,21 @@ public:
     
     // TODO: Add methods of your file system here
     
-    //void writeBuffer(string s1, char* buffer, int offset);
-    void readSuperBlock(BlockDevice bd);
-    void readInodeBlock(BlockDevice bd, u_int32_t blockNo);
-    void createSuperBlock(BlockDevice bd);
-    void createInodeBlock(BlockDevice bd, u_int32_t blockNo, char* path);
+    void initBlockDevice(BlockDevice* bd);
+    void readSuperBlock(BlockDevice* bd);
+    void readInodeBlock(BlockDevice* bd, u_int32_t blockNo);
+    void createSuperBlock(BlockDevice* bd);
+    void writeNewFatEntry(BlockDevice* bd, u_int32_t pointer, u_int32_t nextPointer);
+    void superBlockNumFilesIncrease(BlockDevice* bd);
+    int createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer);
+    int writeInodeToBlockDevice(BlockDevice* bd, inode* node);
+    bool checkFileExist(BlockDevice* bd, char* path);
+    int checkFreeDataSize(BlockDevice* bd, u_int32_t size);
+    int addFile(BlockDevice* bd, char* path);
+    u_int32_t getFreeInodePointer(BlockDevice* bd);
+    u_int32_t getFreeDataPointer(BlockDevice* bd);
+    u_int32_t getMaxBlocksNeeded(u_int32_t i);
+    
     
     
 };

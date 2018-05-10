@@ -16,6 +16,21 @@
 
 #define POINTER_SIZE 4
 
+#define SUPER_BLOCK_START 0
+#define INDOE_MAP_START 1
+#define DATA_MAP_START 2
+#define FAT_START 18
+#define INODE_START 530
+#define DATA_START 594
+
+#define FILESYSTEM_SIZE 33858560
+#define NUMB_OF_BLOCKS 66130
+
+#define NUMB_OF_DATA_MAP_BLOCKS 16
+#define NUMB_OF_INODE_MAP_BLOCKS 1
+#define NUMB_OF_FAT_BLOCKS 512
+
+
 // TODO: Add structures of your file system here
 
 
@@ -23,7 +38,7 @@
 
 struct super_block {
     u_int32_t blockSize;                /* Block size, 512 byte */
-    u_int32_t filesystemSize;           /* Filesystem size, 512 byte * 65536 blocks = 33554432 byte (33 MB) */
+    u_int32_t filesystemSize;           /* Filesystem size, 512 byte * 66130 blocks = 33858560 byte (33.8 MB) */
     u_int32_t numbFiles;                /* Number of Files */
     u_int32_t first_imap_block;         /* First Inode-Map Block */
     u_int32_t first_dmap_block;         /* First Data-Map Block */

@@ -259,45 +259,55 @@ int MyFS::fuseGetxattr(const char *path, const char *name, char *value, size_t s
         
 // TODO: Add your own additional methods here!
     
-void MyFS::readSuperBlock(BlockDevice bd) {
+void MyFS::initBlockDevice(BlockDevice* bd) {
     char buffer[BLOCK_SIZE] = {0};
-    bd.read(0, buffer);
+    bd->resize(BLOCK_SIZE);
+    for(int i = 0; i < NUMB_OF_BLOCKS; i++) {
+        bd->write(i, buffer);
+    }
+}
+
+void MyFS::readSuperBlock(BlockDevice* bd) {
+    char buffer[BLOCK_SIZE] = {0};
+    bd->read(SUPER_BLOCK_START, buffer);
     super_block* sb = (super_block*) buffer;
     
-    //zu test zwecken!!!
+    //---------------------- zum testen ---------------------------------------
     cout << sb->blockSize << endl;
     cout << sb->first_data_block << endl;
+    //-------------------------------------------------------------------------
 }
     
-void MyFS::readInodeBlock(BlockDevice bd, u_int32_t blockNo) {
+void MyFS::readInodeBlock(BlockDevice* bd, u_int32_t blockNo) {
     char buffer[BLOCK_SIZE] = {0};
-    bd.read(blockNo, buffer);
+    bd->read(blockNo, buffer);
     inode* node = (inode*) buffer;
     
-    //zu test zwecken!!!!
+    //---------------------- zum testen ---------------------------------------
     cout << node->file_name << endl;
     cout << node->st_size << " size of file" << endl;
     cout << ctime(&node->atime) << " time of last access" << endl;
     cout << ctime(&node->mtime) << " time of last modification" << endl;
     cout << ctime(&node->ctime) << " time of last status change" << endl;
+    //-------------------------------------------------------------------------
 }
     
     
-void MyFS::createSuperBlock(BlockDevice bd) {
+void MyFS::createSuperBlock(BlockDevice* bd) {
     char structure[BLOCK_SIZE] = {0};
     super_block* sb = (super_block*) structure;
-    sb->blockSize = 512;
-    sb->filesystemSize = 1024;
-    sb->numbFiles = 0;
-    sb->first_imap_block = 1;
-    sb->first_dmap_block = 2;
-    sb->first_fat_block = 3;
-    sb->first_inode_block = 200;
-    sb->first_data_block = 400;
-    bd.write(0, (char*) sb);
+    sb->blockSize = BLOCK_SIZE;                                     /* Block size */
+    sb->filesystemSize = FILESYSTEM_SIZE;                           /* Filesystem size */
+    sb->numbFiles = 0;                                              /* Number of files starts with 0*/
+    sb->first_imap_block = INDOE_MAP_START;                         /* IMAP block start */
+    sb->first_dmap_block = DATA_MAP_START;                          /* DMAP block start */
+    sb->first_fat_block = FAT_START;                                /* FAT block start */
+    sb->first_inode_block = INODE_START;                            /* Inode block start */
+    sb->first_data_block = DATA_START;                              /* Data block start */
+    bd->write(SUPER_BLOCK_START, (char*) sb);
 }
     
-void MyFS::createInodeBlock(BlockDevice bd, u_int32_t blockNo, char* path) {
+int MyFS::createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer) {
     char structure[BLOCK_SIZE] = {0};
     struct stat data;
     stat(path, &data);
@@ -311,10 +321,197 @@ void MyFS::createInodeBlock(BlockDevice bd, u_int32_t blockNo, char* path) {
     node->atime = time(0);                                          /* time of last access */
     node->ctime = time(0);                                          /* time of last status change */
     node->mtime = data.st_mtime;                                    /* time of last modification */
-    node->first_data_block = 55;                                    /* number of first file data-block */
-    node->st_blocks = 1;                                            /* number of 512 byte blocks allocated */
+    node->first_data_block = dataPointer;                           /* number of first file data-block */
+    node->st_blocks = getMaxBlocksNeeded(data.st_size);             /* number of 512 byte blocks allocated */
     
-    bd.write(blockNo, (char*) node);
+    writeInodeToBlockDevice(bd, node);
+    return 0;
+}
+    
+int MyFS::writeInodeToBlockDevice(BlockDevice *bd, inode *node) {
+    if (checkFileExist(bd, node->file_name)) {
+        return -(EEXIST);
+    }
+    if (checkFreeDataSize(bd, node->st_size) < 0) {
+        return -(EFBIG);
+    }
+    
+    u_int32_t pos = getFreeInodePointer(bd);
+    if (pos == 0xFFFFFFFF) {
+        return -(ENOSPC);
+    }
+    
+    u_int32_t blockNumber = pos;
+    char iNodeBlock[BLOCK_SIZE] = {0};
+    char* copy = (char*) node;
+    
+    bd->read(INODE_START + blockNumber, iNodeBlock);
+    memcpy(iNodeBlock, copy, BLOCK_SIZE);
+    bd->write(INODE_START + blockNumber, iNodeBlock);
+    
+    return 0;
+}
+
+int MyFS::checkFreeDataSize(BlockDevice* bd, u_int32_t size) {
+    char dataDMap[BLOCK_SIZE] = {0};
+    u_int8_t bitMask = 0x80;
+    u_int32_t freeSpace = 0;
+    
+    for (u_int32_t blockNumber = 0; blockNumber < NUMB_OF_DATA_MAP_BLOCKS; blockNumber++) {
+        bd->read(DATA_MAP_START + blockNumber, dataDMap);
+        
+        for (int byte = 0; byte < BLOCK_SIZE; byte++) {
+            bitMask = 0x80;
+            
+            for (int bit = 0; bit < 8; bit++) {
+                if ((dataDMap[byte] & bitMask) == 0) {
+                    freeSpace += BLOCK_SIZE;
+                }
+                if (size < freeSpace) {
+                    return 0;
+                }
+                bitMask >>= 1;
+            }
+        }
+    }
+    return -1;
+}
+
+
+bool MyFS::checkFileExist(BlockDevice* bd, char* path) {
+    char dataIMap[BLOCK_SIZE] = {0};
+    char buffer[BLOCK_SIZE] = {0};
+    
+    bd->read(INDOE_MAP_START, dataIMap);
+    
+    u_int8_t bitMask;
+    
+    for (int byte = 0; byte < NUM_DIR_ENTRIES / 8; byte++) {
+        bitMask = 0x80;
+        
+        for (int bitOffset = 0; bitOffset < 8; bitOffset++) {
+            if ((dataIMap[byte] & bitMask) == bitMask) {
+                bd->read(INODE_START + byte, buffer);
+                inode* node = (inode*) buffer;
+                if (strcmp(path, node->file_name) == 0) {
+                    return true;
+                }
+            }
+            bitMask >>= 1;
+        }
+    }
+    return false;
+}
+    
+u_int32_t MyFS::getFreeInodePointer(BlockDevice *bd) {
+    char dataIMap[BLOCK_SIZE] = {0};
+    u_int8_t bitMask;
+    bd->read(INDOE_MAP_START, dataIMap);
+    
+    for (int byte = 0; byte < NUM_DIR_ENTRIES / 8; byte++) {
+        bitMask = 0x80;
+        
+        for (int bit = 0; bit < 8; bit++) {
+            if ((dataIMap[byte] & bitMask) == 0) {
+                dataIMap[byte] |= bitMask;
+                bd->write(INDOE_MAP_START, dataIMap);
+                return bit + byte * 8;
+            }
+            bitMask >>= 1;
+        }
+    }
+    return ~0;
+}
+
+
+u_int32_t MyFS::getFreeDataPointer(BlockDevice* bd) {
+    char dataDMap[BLOCK_SIZE] = {0};
+    u_int8_t bitMask;
+    
+    for (u_int32_t blockNumber = 0; blockNumber < NUMB_OF_DATA_MAP_BLOCKS; blockNumber++) {
+        bd->read(DATA_MAP_START + blockNumber, dataDMap);
+        
+        for (int byte = 0; byte < BLOCK_SIZE; byte++) {
+            bitMask = 0x80;
+            for (int offSet = 0; offSet < 8; offSet++) {
+                if ((dataDMap[byte] & bitMask) == 0) {
+                    dataDMap[byte] |= bitMask;
+                    bd->write(DATA_MAP_START + blockNumber, dataDMap);
+                    return (offSet + byte * 8 + blockNumber * BLOCK_SIZE);
+                }
+                bitMask >>= 1;
+            }
+        }
+    }
+    return 0xFFFFFFFF;
+}
+    
+u_int32_t MyFS::getMaxBlocksNeeded(u_int32_t i) {
+    if (i % BLOCK_SIZE != 0) {
+        return (i / BLOCK_SIZE) + 1;
+    }
+    return (i / BLOCK_SIZE);
+}
+    
+void MyFS::writeNewFatEntry(BlockDevice *bd, u_int32_t pointer, u_int32_t nextPointer) {
+    char table[BLOCK_SIZE] = {0};
+    fat* s_fat = (fat*) table;
+    
+    u_int32_t blockOffset = pointer / BLOCK_SIZE;
+    u_int32_t byteOffset = pointer - BLOCK_SIZE + blockOffset;
+    
+    bd->read(FAT_START + blockOffset, table);
+    s_fat->table[byteOffset] = nextPointer;
+    bd->write(FAT_START + blockOffset, table);
+}
+    
+void MyFS::superBlockNumFilesIncrease(BlockDevice* bd) {
+    char buffer[BLOCK_SIZE] = {0};
+    bd->read(SUPER_BLOCK_START, buffer);
+    super_block* sb = (super_block*) buffer;
+    sb->numbFiles++;
+    bd->write(SUPER_BLOCK_START, buffer);
+}
+    
+int MyFS::addFile(BlockDevice* bd, char* path) {
+    u_int32_t dataPointer = getFreeDataPointer(bd);
+    u_int32_t nextDataPointer;
+    
+    if (dataPointer == 0xFFFFFFFF) {
+        return -1;
+    }
+    if (createInodeBlock(bd, path, dataPointer) < 0) {
+        return -1;
+    }
+    
+    struct stat info;
+    stat(path, &info);
+    char all_data[info.st_size];
+    
+    FILE* f = fopen(path, "rb");
+    fread(all_data, info.st_size, 1, f);
+    fclose(f);
+    
+    u_int32_t blocksToWrite = getMaxBlocksNeeded(info.st_size);
+    char singleBlock[BLOCK_SIZE] = {0};
+    
+    for (u_int32_t dataBlock = 0; dataBlock < blocksToWrite - 1; dataBlock++) {
+        nextDataPointer = getFreeDataPointer(bd);
+        writeNewFatEntry(bd, dataPointer, nextDataPointer);
+        dataPointer = nextDataPointer;
+        memcpy(singleBlock, all_data + BLOCK_SIZE * dataBlock, BLOCK_SIZE);
+        bd->write(nextDataPointer + DATA_START, singleBlock);
+    }
+    
+    auto rest = info.st_size % BLOCK_SIZE;
+    nextDataPointer = 0xFFFFFFFF;
+    char restData[BLOCK_SIZE] = {0};
+    memcpy(restData, all_data + (blocksToWrite - 1) * BLOCK_SIZE, rest);
+    bd->write(dataPointer + DATA_START, restData);
+    
+    superBlockNumFilesIncrease(bd);
+    
+    return 0;
 }
             
 
