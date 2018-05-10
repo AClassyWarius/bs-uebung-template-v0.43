@@ -26,9 +26,11 @@
 #define FILESYSTEM_SIZE 33858560
 #define NUMB_OF_BLOCKS 66130
 
-#define NUMB_OF_DATA_MAP_BLOCKS 16
+#define NUMB_OF_SUPER_BLOCKS 1
 #define NUMB_OF_INODE_MAP_BLOCKS 1
+#define NUMB_OF_DATA_MAP_BLOCKS 16
 #define NUMB_OF_FAT_BLOCKS 512
+#define NUMB_OF_DATA_BLOCKS 65536
 
 
 // TODO: Add structures of your file system here
