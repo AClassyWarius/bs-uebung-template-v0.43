@@ -457,10 +457,10 @@ void MyFS::writeNewFatEntry(BlockDevice *bd, u_int32_t pointer, u_int32_t nextPo
     char table[BLOCK_SIZE] = {0};
     fat* s_fat = (fat*) table;
     
-    u_int32_t blockOffset = pointer / BLOCK_SIZE;
+    u_int32_t blockOffset = pointer / (BLOCK_SIZE / POINTER_SIZE);
     
     bd->read(FAT_START + blockOffset, table);
-    s_fat->table[pointer] = nextPointer;
+    s_fat->table[pointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE)] = nextPointer;
     bd->write(FAT_START + blockOffset, table);
 }
     
@@ -504,6 +504,7 @@ int MyFS::addFile(BlockDevice* bd, char* path) {
     
     auto rest = info.st_size % BLOCK_SIZE;
     nextDataPointer = 0xFFFFFFFF;
+    writeNewFatEntry(bd, dataPointer, nextDataPointer);
     char restData[BLOCK_SIZE] = {0};
     memcpy(restData, all_data + (blocksToWrite - 1) * BLOCK_SIZE, rest);
     bd->write(dataPointer + DATA_START, restData);
