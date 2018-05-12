@@ -13,6 +13,8 @@
 #include <cmath>
 #include <iostream>
 #include <time.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 using namespace std;
 
@@ -23,6 +25,11 @@ class MyFS {
 private:
     static MyFS *_instance;
     FILE *logFile;
+    
+    struct buffer {
+        u_int32_t blockNumber = 0xFFFFFFFF;
+        char blockContent[BLOCK_SIZE];
+    }bdBuffer;
     
 public:
     static MyFS *Instance();
@@ -75,21 +82,26 @@ public:
     // TODO: Add methods of your file system here
     
     void initBlockDevice(BlockDevice* bd);
+    int readFromBuffer(u_int32_t position, char* data, BlockDevice* bd);
+    int writeToBuffer(u_int32_t position, char* data, BlockDevice* bd);
+    int writeToBufferToBlockDevice(BlockDevice* bd);
+    void createSuperBlock(BlockDevice* bd);
+    int createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer, u_int32_t iNodePointer);
+    bool checkFileExist(BlockDevice* bd, char* path);
+    u_int32_t getFreeInodePointer(BlockDevice* bd);
+    int checkFreeDataSize(BlockDevice* bd, u_int32_t size);
+    u_int32_t getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray);
+    u_int32_t getMaxBlocksNeeded(u_int32_t i);
+    void writeFatEntries(BlockDevice* bd, u_int32_t* pointers, u_int32_t sizeOfArray);
+    void superBlockNumFilesIncrease(BlockDevice* bd);
+    int addFile(BlockDevice* bd, char* path);
+    
+    //------------------- Methods for mount.myfs -------------------------------
+    
     void readSuperBlock(BlockDevice* bd);
     void readInodeBlock(BlockDevice* bd, u_int32_t blockNo);
-    void createSuperBlock(BlockDevice* bd);
-    void writeNewFatEntry(BlockDevice* bd, u_int32_t pointer, u_int32_t nextPointer);
-    void superBlockNumFilesIncrease(BlockDevice* bd);
-    int createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer);
-    int writeInodeToBlockDevice(BlockDevice* bd, inode* node);
-    bool checkFileExist(BlockDevice* bd, char* path);
-    int checkFreeDataSize(BlockDevice* bd, u_int32_t size);
-    int addFile(BlockDevice* bd, char* path);
-    u_int32_t getFreeInodePointer(BlockDevice* bd);
-    u_int32_t getFreeDataPointer(BlockDevice* bd);
-    u_int32_t getMaxBlocksNeeded(u_int32_t i);
     
-    
+    int getNumbOfFiles();
     
 };
 

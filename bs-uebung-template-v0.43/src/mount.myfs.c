@@ -59,6 +59,13 @@ int main(int argc, char *argv[]) {
     char* logFileName= NULL;
     char* mountPointName= NULL;
     
+    //---------------------- zum testen ---------------------------------------
+    argc = 4;
+    argv[1] = "/Users/mariuskemmling/Documents/Studium/Semester 3/Betriebssysteme Uebung/SS18/bs-uebung-template-v0.43/container.bin";
+    argv[2] = "/Users/mariuskemmling/Documents/Studium/Semester 3/Betriebssysteme Uebung/SS18/bs-uebung-template-v0.43/log.txt";
+    argv[3] = "mount-dir";
+    //-------------------------------------------------------------------------
+    
     // parse arguments
     if(argc > 3) {
         // check if container file exists
