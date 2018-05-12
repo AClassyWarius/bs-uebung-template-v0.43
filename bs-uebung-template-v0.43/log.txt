@@ -1,0 +1,2326 @@
+	Starting logging...
+
+src/myfs.cpp:296:fuseInit()
+	Container file name: /Users/mariuskemmling/Documents/Studium/Semester 3/Betriebssysteme Uebung/SS18/bs-uebung-template-v0.43/container.bin
+fuseInit() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.localized, /file.txt) 
+
+	strcmp(/.localized, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.localized, /file.txt) 
+
+	strcmp(/.localized, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.DS_Store, /file.txt) 
+
+	strcmp(/.DS_Store, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.DS_Store, /file.txt) 
+
+	strcmp(/.DS_Store, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.localized, /file.txt) 
+
+	strcmp(/.localized, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.localized, /file.txt) 
+
+	strcmp(/.localized, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.localized, /file.txt) 
+
+	strcmp(/.localized, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.hidden, /file.txt) 
+
+	strcmp(/.hidden, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:161:fuseRead()
+	path: /file.txt, buf: , size: 196, offset: 0 
+
+fuseRead() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:161:fuseRead()
+	path: /text.txt, buf: , size: 207, offset: 0 
+
+fuseRead() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.localized, /file.txt) 
+
+	strcmp(/.localized, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.DS_Store, /file.txt) 
+
+	strcmp(/.DS_Store, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.DS_Store, /file.txt) 
+
+	strcmp(/.DS_Store, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.DS_Store, /file.txt) 
+
+	strcmp(/.DS_Store, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.localized, /file.txt) 
+
+	strcmp(/.localized, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.DS_Store, /file.txt) 
+
+	strcmp(/.DS_Store, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.DS_Store, /file.txt) 
+
+	strcmp(/.DS_Store, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/.DS_Store, /file.txt) 
+
+	strcmp(/.DS_Store, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+src/myfs.cpp:153:fuseOpen()
+fuseOpendir() returned 0
+fuseOpen() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+src/myfs.cpp:184:fuseFlush()
+fuseReleasedir() returned 0
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:221:fuseReaddir()
+	--> Getting the list of files of /
+
+	--> Getting the number of files 2 
+
+	filler: file.txt 
+
+	filler: text.txt 
+
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/text.txt, /file.txt) 
+
+	strcmp(/text.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:41:fuseGetattr()
+	strcmp(/file.txt, /file.txt) 
+
+	strcmp(/file.txt, /text.txt) 
+
+fuseGetattr() returned 0
+src/myfs.cpp:212:fuseOpendir()
+fuseOpendir() returned 0
+src/myfs.cpp:250:fuseReleasedir()
+fuseReleasedir() returned 0
+src/myfs.cpp:41:fuseGetattr()
+	write st_mode and st_nlink for : / 
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:325:fuseGetxattr()
+fuseGetxattr() returned 0
+src/myfs.cpp:153:fuseOpen()
+fuseOpen() returned 0
+src/myfs.cpp:184:fuseFlush()
+src/myfs.cpp:189:fuseRelease()
+fuseRelease() returned 0

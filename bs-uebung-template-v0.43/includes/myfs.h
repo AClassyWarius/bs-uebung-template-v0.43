@@ -15,6 +15,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <string.h>
 
 using namespace std;
 
@@ -35,6 +36,8 @@ public:
     static MyFS *Instance();
     
     // TODO: Add attributes of your file system here
+    
+    BlockDevice bd_fuse;
     
     MyFS();
     ~MyFS();
@@ -98,10 +101,8 @@ public:
     
     //------------------- Methods for mount.myfs -------------------------------
     
-    void readSuperBlock(BlockDevice* bd);
-    void readInodeBlock(BlockDevice* bd, u_int32_t blockNo);
-    
     int getNumbOfFiles();
+    inode* getInodesOfFiles(int numbOfFiles);
     
 };
 

@@ -46,7 +46,6 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
     statbuf->st_gid = getgid();     /* The group of the file/directory is the same as the group of the user who mounted
                                      the filesystem */
     
-    
     if (statbuf->st_birthtimespec.tv_sec == 0) {        /* If birthtime 01.01.1970 01:00 */
         statbuf->st_birthtimespec.tv_sec = time(0);
     }
@@ -54,16 +53,32 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
     statbuf->st_atimespec.tv_sec = time(0);     /* The last access of the file/directory is right now */
     statbuf->st_mtimespec.tv_sec = time(0);     /* The last modification of the file/directory is right now */
     
-    
     if (strcmp(path, "/") == 0) {
         LOGF("write st_mode and st_nlink for : %s ", path);
-        
         statbuf->st_mode = S_IFDIR | 0555;
         statbuf->st_nlink = 2;
-        
         return 0;
     }
     
+    int count = getNumbOfFiles();
+    
+    if (count > 0 && (strcmp(path, "/") != 0)) {
+        inode* node = getInodesOfFiles(count);
+        for (int i = 0; i < count; i++) {
+            string filename = "/";
+            filename += node[i].file_name;
+            const char* path2 = filename.c_str();
+            LOGF("strcmp(%s, %s) \n", path, path2);
+            if (strcmp(path, path2) == 0) {
+                statbuf->st_uid = node[i].user_id;
+                statbuf->st_gid = node[i].grp_id;
+                statbuf->st_ctimespec.tv_sec = node[i].ctime;
+                statbuf->st_mode = node[i].protection;
+                statbuf->st_nlink = 1;
+                statbuf->st_size = node[i].st_size;
+            }
+        }
+    }
     RETURN(0);
     return -(ENOENT);
 }
@@ -138,6 +153,10 @@ int MyFS::fuseOpen(const char *path, struct fuse_file_info *fileInfo) {
     LOGM();
     
     // TODO: Implement this!
+    /* In fileInfo->fh kann in fuseOpen() ein File Handle gespeichert werden, mit dem Sie später in fuseRead() und fuseRelease() auf die (geöffnete) Datei zugreifen können.
+     */
+    
+    
     
     RETURN(0);
 }
@@ -146,7 +165,11 @@ int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struc
     LOGM();
     
     // TODO: Implement this!
+    
+    //path: /file.txt, buf: , size: 196, offset: 0
+    //path: /text.txt, buf: , size: 207, offset: 0
 
+    
     RETURN(0);
 }
 
@@ -159,7 +182,7 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
 }
 
 int MyFS::fuseStatfs(const char *path, struct statvfs *statInfo) {
-    LOGM();
+    //LOGM();
     return 0;
 }
 
@@ -210,22 +233,23 @@ int MyFS::fuseReaddir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
     filler(buf, ".", NULL, 0);
     filler(buf, "..", NULL, 0);
     
-    int numbOfFiles = getNumbOfFiles();
+    int count = getNumbOfFiles();
+    LOGF("--> Getting the number of files %d \n", count);
     
-    while(numbOfFiles > 0) {
-        if (strcmp(path, "/")) {
-            
+    if (count > 0) {
+        inode* node = getInodesOfFiles(count);
+        for (int i = 0; i < count; i++) {
+            const char* name = node[i].file_name;
+            filler(buf, name, NULL, 0);
+            LOGF("filler: %s \n", name);
         }
-        numbOfFiles--;
+        return 0;
     }
-    
     RETURN(0);
     
     // <<< My new code
     
-    
-    
-    return 0;
+    return -(ENOTDIR);
 }
 
 int MyFS::fuseReleasedir(const char *path, struct fuse_file_info *fileInfo) {
@@ -282,9 +306,8 @@ void* MyFS::fuseInit(struct fuse_conn_info *conn) {
         
         // TODO: Implement your initialization methods here!
         
-        BlockDevice* bd = new BlockDevice();
-        bd->open(((MyFsInfo *) fuse_get_context()->private_data)->contFile);
         
+        bd_fuse.open(((MyFsInfo *) fuse_get_context()->private_data)->contFile);
         
     }
     
@@ -311,47 +334,38 @@ int MyFS::fuseGetxattr(const char *path, const char *name, char *value, size_t s
         
 // TODO: Add your own additional methods here!
 
-    
-void MyFS::readSuperBlock(BlockDevice* bd) {
-    char buffer[BLOCK_SIZE] = {0};
-    bd->read(SUPER_BLOCK_START, buffer);
-    super_block* sb = (super_block*) buffer;
-    
-    //---------------------- zum testen ---------------------------------------
-    cout << sb->blockSize << endl;
-    cout << sb->first_data_block << endl;
-    //-------------------------------------------------------------------------
-}
-    
-void MyFS::readInodeBlock(BlockDevice* bd, u_int32_t blockNo) {
-    char buffer[BLOCK_SIZE] = {0};
-    bd->read(blockNo, buffer);
-    inode* node = (inode*) buffer;
-    
-    //---------------------- zum testen ---------------------------------------
-    cout << node->file_name << endl;
-    cout << node->st_size << " size of file" << endl;
-    cout << ctime(&node->atime) << " time of last access" << endl;
-    cout << ctime(&node->mtime) << " time of last modification" << endl;
-    cout << ctime(&node->ctime) << " time of last status change" << endl;
-    //-------------------------------------------------------------------------
-}
-    
-    
-int MyFS::getNumbOfFiles(){
-    BlockDevice bd;
-    bd.open(((MyFsInfo*) fuse_get_context()->private_data)->contFile);
-    
-    char buffer[BLOCK_SIZE] = {0};
-    bd.read(SUPER_BLOCK_START, buffer);
-    super_block* sb = (super_block*) buffer;
-    
-    bd.close();
-    bd.~BlockDevice();
-    
+int MyFS::getNumbOfFiles() {
+    char superblock[BLOCK_SIZE] = {0};
+    bd_fuse.read(SUPER_BLOCK_START, superblock);
+    super_block* sb = (super_block*) superblock;
     return sb->numbFiles;
 }
+
+inode* MyFS::getInodesOfFiles(int numbOfFiles) {
+    char iMap[BLOCK_SIZE] = {0};
+    char buffer[BLOCK_SIZE] = {0};
     
+    bd_fuse.read(INDOE_MAP_START, iMap);
+    inode* inodes = new inode[numbOfFiles];
+    
+    u_int8_t bitMask;
+    int count = 0;
+    
+    for (int byte = 0; (byte < NUM_DIR_ENTRIES / 8) && (count < numbOfFiles); byte++) {
+        bitMask = 0x80;
+        
+        for (int bitOffset = 0; (bitOffset < 8) && (count < numbOfFiles); bitOffset++) {
+            if ((iMap[byte] & bitMask) == bitMask) {
+                bd_fuse.read(INODE_START + bitOffset + byte * 8, buffer);
+                inode* node = (inode*) buffer;
+                inodes[count].operator=(*node);
+                count++;
+            }
+            bitMask >>= 1;
+        }
+    }
+    return inodes;
+}
     
 //---------------------------------------------------------------------------------------
     
