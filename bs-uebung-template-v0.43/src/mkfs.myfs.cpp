@@ -21,7 +21,8 @@ int main(int argc, char *argv[]) {
     argv[1] = "container.bin";
     argv[2] = "file.txt";
     argv[3] = "text.txt";
-    argc = 4;
+    argv[4] = "bigdata.txt";
+    argc = 5;
     //---------------------------------------------------
     
     
@@ -35,7 +36,6 @@ int main(int argc, char *argv[]) {
     for (auto arguments = 2; arguments < argc; arguments++) {
         MyFS::Instance()->addFile(bd, argv[arguments]);
     }
-    
     
     return 0;
 }

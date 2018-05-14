@@ -37,6 +37,9 @@ MyFS::~MyFS() {
     
 }
 
+/**
+ * Connects to fuse getattr.
+ */
 int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
     LOGM();
     
@@ -54,7 +57,7 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
     statbuf->st_mtimespec.tv_sec = time(0);     /* The last modification of the file/directory is right now */
     
     if (strcmp(path, "/") == 0) {
-        LOGF("write st_mode and st_nlink for : %s ", path);
+        LOGF("\n<--- Write st_mode and st_nlink for: %s --->\n", path);
         statbuf->st_mode = S_IFDIR | 0555;
         statbuf->st_nlink = 2;
         return 0;
@@ -68,8 +71,8 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
             string filename = "/";
             filename += node[i].file_name;
             const char* path2 = filename.c_str();
-            LOGF("strcmp(%s, %s) \n", path, path2);
             if (strcmp(path, path2) == 0) {
+                LOGF("\n<--- Write statbuf for: %s %s --->\n", path, path2);
                 statbuf->st_uid = node[i].user_id;
                 statbuf->st_gid = node[i].grp_id;
                 statbuf->st_ctimespec.tv_sec = node[i].ctime;
@@ -85,7 +88,8 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
 
 int MyFS::fuseReadlink(const char *path, char *link, size_t size) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support readlink.
+    RETURN(0);
 }
 
 int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
@@ -98,7 +102,8 @@ int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
 
 int MyFS::fuseMkdir(const char *path, mode_t mode) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support mkdir.
+    RETURN(0);
 }
 
 int MyFS::fuseUnlink(const char *path) {
@@ -111,54 +116,58 @@ int MyFS::fuseUnlink(const char *path) {
 
 int MyFS::fuseRmdir(const char *path) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support rmdir.
+    RETURN(0);
 }
 
 int MyFS::fuseSymlink(const char *path, const char *link) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support symlink.
+    RETURN(0);
 }
 
 int MyFS::fuseRename(const char *path, const char *newpath) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support rename.
+    RETURN(0);
 }
 
 int MyFS::fuseLink(const char *path, const char *newpath) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support link.
+    RETURN(0);
 }
 
 int MyFS::fuseChmod(const char *path, mode_t mode) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support chmod.
+    RETURN(0);
 }
 
 int MyFS::fuseChown(const char *path, uid_t uid, gid_t gid) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support chown.
+    RETURN(0);
 }
 
 int MyFS::fuseTruncate(const char *path, off_t newSize) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support truncate.
+    RETURN(0);
 }
 
 int MyFS::fuseUtime(const char *path, struct utimbuf *ubuf) {
     LOGM();
-    return 0;
+    //return -(ENOSYS); // We won't support utime.
+    RETURN(0);
 }
 
 int MyFS::fuseOpen(const char *path, struct fuse_file_info *fileInfo) {
     LOGM();
     
-    // TODO: Implement this!
-    /* In fileInfo->fh kann in fuseOpen() ein File Handle gespeichert werden, mit dem Sie später in fuseRead() und fuseRelease() auf die (geöffnete) Datei zugreifen können.
-     */
     
     
-    
-    RETURN(0);
+    return 0;
 }
 
 int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
@@ -167,7 +176,77 @@ int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struc
     // TODO: Implement this!
     
     //path: /file.txt, buf: , size: 196, offset: 0
-    //path: /text.txt, buf: , size: 207, offset: 0
+    
+    LOGF("\n FINDME path: %s buf: %s size: %ld offset: %d \n", path, buf, size, offset);
+    
+    int count = getNumbOfFiles();
+    
+    if (count > 0) {
+        inode* node = getInodesOfFiles(count);
+        for (int i = 0; i < count; i++) {
+            string filename = "/";
+            filename += node[i].file_name;
+            if ((strcmp(path, filename.c_str()) == 0)) {
+                if (node[i].st_blocks == 1) {
+                    char* selectedData = NULL;
+                    
+                    char buffer[BLOCK_SIZE] = {0};
+                    bd_fuse.read(DATA_START + node[i].first_data_block, buffer);
+                    
+                    selectedData = buffer;
+                    
+                    memcpy(buf, selectedData + offset, size);
+                    return strlen(selectedData) - offset;
+                    
+                } else if (node[i].st_blocks > 1) {
+                    char* selectedData = NULL;
+                    
+                    char buffer[BLOCK_SIZE] = {0};
+                    char full_data[node[i].st_size];
+                    
+                    off_t blocksToWrite = node[i].st_blocks;
+                    u_int32_t startDataBlock = node[i].first_data_block;
+                    
+                    LOGF("\n blocksToWrite = %lld, startDataBlock = %d", blocksToWrite, startDataBlock);
+                    
+                    char fat_array[BLOCK_SIZE] = {0};
+                    bd_fuse.read(FAT_START, fat_array);
+                    
+                    fat* s_fat = (fat*) fat_array;
+                    
+                    if (s_fat->table[startDataBlock] == startDataBlock + 1) {
+                    }
+                    
+                    int i = 0;
+                    while(s_fat->table[startDataBlock + i] != 0xFFFFFFFF) {
+                        bd_fuse.read(DATA_START + startDataBlock + i, buffer);
+                        memcpy(full_data + BLOCK_SIZE * i, buffer, BLOCK_SIZE);
+                        i++;
+                    }
+                    
+                    if (s_fat->table[i + startDataBlock] == 0xFFFFFFFF) {
+                        int rest = node->st_size % BLOCK_SIZE;
+                        char restData[BLOCK_SIZE] = {0};
+                        
+                        
+                        bd_fuse.read(i + startDataBlock + DATA_START, restData);
+                        memcpy(full_data + (blocksToWrite - 1) * BLOCK_SIZE, restData, rest);
+                        LOGF("\n Fulldata: %s \n", full_data);
+                        
+                        selectedData = full_data;
+                        
+                        memcpy(buf, selectedData + offset, size);
+                        return strlen(selectedData) - offset;
+                    }
+                }
+            }
+        }
+    }
+    
+    return -1;
+    
+    
+    
 
     
     RETURN(0);
@@ -182,8 +261,9 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
 }
 
 int MyFS::fuseStatfs(const char *path, struct statvfs *statInfo) {
-    //LOGM();
-    return 0;
+    LOGM();
+    //return -(ENOSYS); // We won't support statfs.
+    RETURN(0);
 }
 
 int MyFS::fuseFlush(const char *path, struct fuse_file_info *fileInfo) {
@@ -226,7 +306,7 @@ int MyFS::fuseOpendir(const char *path, struct fuse_file_info *fileInfo) {
 int MyFS::fuseReaddir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fileInfo) {
     LOGM();
     
-    LOGF("--> Getting the list of files of %s\n", path);
+    LOGF("\n<--- Getting the list of files of %s --->\n", path);
     
     // TODO: Implement this!
     
@@ -234,7 +314,7 @@ int MyFS::fuseReaddir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
     filler(buf, "..", NULL, 0);
     
     int count = getNumbOfFiles();
-    LOGF("--> Getting the number of files %d \n", count);
+    LOGF("\n<---- Getting the number of files %d --->\n", count);
     
     if (count > 0) {
         inode* node = getInodesOfFiles(count);
@@ -405,7 +485,7 @@ int MyFS::readFromBuffer(u_int32_t position, char* data, BlockDevice* bd) {
 
 /* Schreibt Daten in den Buffer in Größe der BLOCK_SIZE.
  * Sollte in einem neuen Block geschrieben werden, so werden
- * die Daten die aktuellen Daetn im Buffer in das BlockDevice geschrieben.
+ * die Daten die aktuellen Daten im Buffer in das BlockDevice geschrieben.
  * Ist der Buffer an seiner StartPosition (0xFFFF FFFF), werden nur
  * die Daten in char* data in den Buffer geschrieben.
  *
@@ -508,7 +588,7 @@ bool MyFS::checkFileExist(BlockDevice* bd, char* path) {
             
         for (int bitOffset = 0; bitOffset < 8; bitOffset++) {
             if ((dataIMap[byte] & bitMask) == bitMask) {
-                readFromBuffer(INODE_START + byte, buffer, bd);
+                readFromBuffer(INODE_START + bitOffset + byte * 8, buffer, bd);
                 inode* node = (inode*) buffer;
                 if (strcmp(path, node->file_name) == 0) {
                     return true;
@@ -611,7 +691,7 @@ u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_
                 if ((dataDMap[byte] & bitMask) == 0) {
                     dataDMap[byte] |= bitMask;
                     writeToBuffer(DATA_MAP_START + blockNumber, dataDMap, bd);
-                    pointerArray[counter] = offSet + byte * 8 + blockNumber * BLOCK_SIZE;
+                    pointerArray[counter] = offSet + byte * 8 + blockNumber * BLOCK_SIZE * 8;
                     counter++;
                     if (counter == sizeOfArray) {
                         writeToBufferToBlockDevice(bd);
@@ -633,6 +713,8 @@ u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_
 u_int32_t MyFS::getMaxBlocksNeeded(u_int32_t i) {
     if (i % BLOCK_SIZE != 0) {
         return (i / BLOCK_SIZE) + 1;
+    } else if (i == 0) {
+        return 1;
     }
     return (i / BLOCK_SIZE);
 }
