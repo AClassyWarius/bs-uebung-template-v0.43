@@ -38,7 +38,7 @@ MyFS::~MyFS() {
 }
 
 /**
- * Connects to fuse getattr.
+ * Metadaten für Datei lesen.
  */
 int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
     LOGM();
@@ -79,17 +79,19 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
                 statbuf->st_mode = node[i].protection;
                 statbuf->st_nlink = 1;
                 statbuf->st_size = node[i].st_size;
+                statbuf->st_blocks = node[i].st_blocks;
+                statbuf->st_blksize = BLOCK_SIZE;
             }
         }
     }
     RETURN(0);
     return -(ENOENT);
 }
+ 
 
 int MyFS::fuseReadlink(const char *path, char *link, size_t size) {
-    LOGM();
-    //return -(ENOSYS); // We won't support readlink.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
@@ -101,9 +103,8 @@ int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
 }
 
 int MyFS::fuseMkdir(const char *path, mode_t mode) {
-    LOGM();
-    //return -(ENOSYS); // We won't support mkdir.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseUnlink(const char *path) {
@@ -115,141 +116,111 @@ int MyFS::fuseUnlink(const char *path) {
 }
 
 int MyFS::fuseRmdir(const char *path) {
-    LOGM();
-    //return -(ENOSYS); // We won't support rmdir.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseSymlink(const char *path, const char *link) {
-    LOGM();
-    //return -(ENOSYS); // We won't support symlink.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseRename(const char *path, const char *newpath) {
-    LOGM();
-    //return -(ENOSYS); // We won't support rename.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseLink(const char *path, const char *newpath) {
-    LOGM();
-    //return -(ENOSYS); // We won't support link.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseChmod(const char *path, mode_t mode) {
-    LOGM();
-    //return -(ENOSYS); // We won't support chmod.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseChown(const char *path, uid_t uid, gid_t gid) {
-    LOGM();
-    //return -(ENOSYS); // We won't support chown.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseTruncate(const char *path, off_t newSize) {
-    LOGM();
-    //return -(ENOSYS); // We won't support truncate.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseUtime(const char *path, struct utimbuf *ubuf) {
-    LOGM();
-    //return -(ENOSYS); // We won't support utime.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseOpen(const char *path, struct fuse_file_info *fileInfo) {
     LOGM();
+
+    // TODO: Implement this!
     
     
-    
-    return 0;
+    RETURN(0);
 }
+    
 
 int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
     LOGM();
-    
-    // TODO: Implement this!
-    
-    //path: /file.txt, buf: , size: 196, offset: 0
-    
-    LOGF("\n FINDME path: %s buf: %s size: %ld offset: %d \n", path, buf, size, offset);
-    
     int count = getNumbOfFiles();
-    
     if (count > 0) {
         inode* node = getInodesOfFiles(count);
         for (int i = 0; i < count; i++) {
             string filename = "/";
             filename += node[i].file_name;
-            if ((strcmp(path, filename.c_str()) == 0)) {
-                if (node[i].st_blocks == 1) {
-                    char* selectedData = NULL;
-                    
-                    char buffer[BLOCK_SIZE] = {0};
-                    bd_fuse.read(DATA_START + node[i].first_data_block, buffer);
-                    
-                    selectedData = buffer;
-                    
-                    memcpy(buf, selectedData + offset, size);
-                    return strlen(selectedData) - offset;
-                    
-                } else if (node[i].st_blocks > 1) {
-                    char* selectedData = NULL;
-                    
-                    char buffer[BLOCK_SIZE] = {0};
-                    char full_data[node[i].st_size];
-                    
-                    off_t blocksToWrite = node[i].st_blocks;
+            if (strcmp(path, filename.c_str()) == 0) {
+                uint32_t length = node[i].st_size;
+                //LOGF("\n length = %d offset = %lld \n", length, offset);
+                
+                if(offset < length) {
+                    //LOGF("\n FINDME offset: %lld < length: %d \n", offset, length);
+                    uint32_t blockOffset = offset / BLOCK_SIZE;
+                    uint32_t byteOffset = offset - (blockOffset * BLOCK_SIZE);
                     u_int32_t startDataBlock = node[i].first_data_block;
+                    uint32_t currentDataPointer = getCurrentDataPointer(startDataBlock, blockOffset);
+                    //LOGF("\n blockOffset: %d \n byteOffset: %d \n startDataBlock: %d \n currentDataPointer: %d", blockOffset, byteOffset, startDataBlock, currentDataPointer);
                     
-                    LOGF("\n blocksToWrite = %lld, startDataBlock = %d", blocksToWrite, startDataBlock);
                     
-                    char fat_array[BLOCK_SIZE] = {0};
-                    bd_fuse.read(FAT_START, fat_array);
-                    
-                    fat* s_fat = (fat*) fat_array;
-                    
-                    if (s_fat->table[startDataBlock] == startDataBlock + 1) {
+                    if(offset + size > length) {
+                        size = length - offset;
+                        //LOGF("\n new size = %zu \n", size);
                     }
+                    char requestedData[size];
+                    char blockData[BLOCK_SIZE] = {0};
+                    size_t copiedBytes = 0;
                     
-                    int i = 0;
-                    while(s_fat->table[startDataBlock + i] != 0xFFFFFFFF) {
-                        bd_fuse.read(DATA_START + startDataBlock + i, buffer);
-                        memcpy(full_data + BLOCK_SIZE * i, buffer, BLOCK_SIZE);
-                        i++;
+                    while(copiedBytes < size) {
+                        readFromBuffer(DATA_START + currentDataPointer, blockData, &bd_fuse);
+                        //LOGF("\n blockdata = %s \n", blockData);
+                        if(byteOffset + size - copiedBytes > BLOCK_SIZE && nextDataPointer(currentDataPointer) != 0xFFFFFFFF){
+                            //LOGF("\n blockOffset: %d \n byteOffset: %d \n startDataBlock: %d \n currentDataPointer: %d", blockOffset, byteOffset, startDataBlock, currentDataPointer);
+                            
+                            memcpy(requestedData + copiedBytes, blockData + byteOffset, BLOCK_SIZE - byteOffset);
+                            copiedBytes += BLOCK_SIZE - byteOffset;
+                            byteOffset = 0;
+                            currentDataPointer = nextDataPointer(currentDataPointer);
+                        } else if(nextDataPointer(currentDataPointer) == 0xFFFFFFFF){
+                            memcpy(requestedData + copiedBytes, blockData + byteOffset, size - copiedBytes);
+                            copiedBytes += size - copiedBytes;
+                        } else {
+                            memcpy(requestedData + copiedBytes, blockData + byteOffset, size - copiedBytes);
+                            copiedBytes += size;
+                        }
                     }
-                    
-                    if (s_fat->table[i + startDataBlock] == 0xFFFFFFFF) {
-                        int rest = node->st_size % BLOCK_SIZE;
-                        char restData[BLOCK_SIZE] = {0};
-                        
-                        
-                        bd_fuse.read(i + startDataBlock + DATA_START, restData);
-                        memcpy(full_data + (blocksToWrite - 1) * BLOCK_SIZE, restData, rest);
-                        LOGF("\n Fulldata: %s \n", full_data);
-                        
-                        selectedData = full_data;
-                        
-                        memcpy(buf, selectedData + offset, size);
-                        return strlen(selectedData) - offset;
-                    }
+                    memcpy(buf,requestedData,size);
+                }else {
+                    size = 0;
                 }
+                RETURN (size);
             }
         }
     }
-    
-    return -1;
-    
-    
-    
-
-    
-    RETURN(0);
+    RETURN(-(ENOENT));
 }
 
 int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
@@ -261,13 +232,12 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
 }
 
 int MyFS::fuseStatfs(const char *path, struct statvfs *statInfo) {
-    LOGM();
-    //return -(ENOSYS); // We won't support statfs.
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseFlush(const char *path, struct fuse_file_info *fileInfo) {
-    LOGM();
+    //LOGM();
     return 0;
 }
 
@@ -280,24 +250,25 @@ int MyFS::fuseRelease(const char *path, struct fuse_file_info *fileInfo) {
 }
 
 int MyFS::fuseFsync(const char *path, int datasync, struct fuse_file_info *fi) {
-    LOGM();
+    //LOGM();
     return 0;
 }
 
 int MyFS::fuseListxattr(const char *path, char *list, size_t size) {
-    LOGM();
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseRemovexattr(const char *path, const char *name) {
-    LOGM();
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseOpendir(const char *path, struct fuse_file_info *fileInfo) {
     LOGM();
     
     // TODO: Implement this!
+    
     
     
     RETURN(0);
@@ -341,13 +312,13 @@ int MyFS::fuseReleasedir(const char *path, struct fuse_file_info *fileInfo) {
 }
 
 int MyFS::fuseFsyncdir(const char *path, int datasync, struct fuse_file_info *fileInfo) {
-    LOGM();
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseTruncate(const char *path, off_t offset, struct fuse_file_info *fileInfo) {
-    LOGM();
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
 
 int MyFS::fuseCreate(const char *path, mode_t mode, struct fuse_file_info *fileInfo) {
@@ -384,8 +355,8 @@ void* MyFS::fuseInit(struct fuse_conn_info *conn) {
         // you can get the containfer file name here:
         LOGF("Container file name: %s", ((MyFsInfo *) fuse_get_context()->private_data)->contFile);
         
-        // TODO: Implement your initialization methods here!
         
+        // TODO: Implement your initialization methods here!
         
         bd_fuse.open(((MyFsInfo *) fuse_get_context()->private_data)->contFile);
         
@@ -399,8 +370,8 @@ int MyFS::fuseSetxattr(const char *path, const char *name, const char *value, si
 #else
 int MyFS::fuseSetxattr(const char *path, const char *name, const char *value, size_t size, int flags) {
 #endif
-    LOGM();
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
     
 #ifdef __APPLE__
@@ -408,8 +379,8 @@ int MyFS::fuseGetxattr(const char *path, const char *name, char *value, size_t s
 #else
 int MyFS::fuseGetxattr(const char *path, const char *name, char *value, size_t size) {
 #endif
-    LOGM();
-    RETURN(0);
+    //LOGM();
+    return 0;
 }
         
 // TODO: Add your own additional methods here!
@@ -445,6 +416,31 @@ inode* MyFS::getInodesOfFiles(int numbOfFiles) {
         }
     }
     return inodes;
+}
+    
+u_int32_t MyFS::getCurrentDataPointer(u_int32_t startPointer,u_int32_t dataBlockNr) {
+    u_int32_t counter = 0;
+    u_int32_t blockOffset = startPointer / (BLOCK_SIZE /POINTER_SIZE);
+    u_int32_t pointerOffset = startPointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
+    char fatBlock[BLOCK_SIZE];
+    fat* s_fat = (fat*) fatBlock;
+    while(counter < dataBlockNr) {
+        readFromBuffer(FAT_START + blockOffset, fatBlock, &bd_fuse);
+        startPointer = s_fat->table[pointerOffset];
+        blockOffset = startPointer / (BLOCK_SIZE / POINTER_SIZE);
+        pointerOffset = startPointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
+        counter++;
+    }
+    return startPointer;
+}
+    
+u_int32_t MyFS::nextDataPointer(u_int32_t dataPointer) {
+    u_int32_t blockOffset = dataPointer / (BLOCK_SIZE / POINTER_SIZE);
+    u_int32_t pointerOffset = dataPointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
+    char fatBlock[BLOCK_SIZE];
+    fat* s_fat = (fat*) fatBlock;
+    readFromBuffer(FAT_START + blockOffset, fatBlock,&bd_fuse);
+    return s_fat->table[pointerOffset];
 }
     
 //---------------------------------------------------------------------------------------
@@ -575,7 +571,7 @@ int MyFS::createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer, u
  * @param bd - BlockDevice in dem die Namen in den Inodes geprüft werden.
  * @return - true wenn ein Dateiname bereits vorhanden ist, false wenn nicht vorhanden.
 */
-bool MyFS::checkFileExist(BlockDevice* bd, char* path) {
+int MyFS::checkFileExist(BlockDevice* bd,const char* path) {
     char dataIMap[BLOCK_SIZE] = {0};
     char buffer[BLOCK_SIZE] = {0};
         
@@ -591,13 +587,13 @@ bool MyFS::checkFileExist(BlockDevice* bd, char* path) {
                 readFromBuffer(INODE_START + bitOffset + byte * 8, buffer, bd);
                 inode* node = (inode*) buffer;
                 if (strcmp(path, node->file_name) == 0) {
-                    return true;
+                    return bitOffset + byte * 8;
                 }
             }
             bitMask >>= 1;
         }
     }
-    return false;
+    return -(ENOENT);
 }
     
 /* Geht durch die IMap und sucht nach einer freien Stelle.
@@ -797,7 +793,7 @@ void MyFS::superBlockNumFilesIncrease(BlockDevice* bd) {
  * @return - 0 bei Erfolg, return < 0 bei Fehler.
 */
 int MyFS::addFile(BlockDevice* bd, char* path) {
-    if (checkFileExist(bd, path)) {
+    if (checkFileExist(bd, path) >= 0) {
         return -(EEXIST);
     }
     
@@ -822,7 +818,7 @@ int MyFS::addFile(BlockDevice* bd, char* path) {
     createInodeBlock(bd, path, dataPointers[0], iNodePointer);
     writeFatEntries(bd, dataPointers, sizeOfArray);
     
-    char all_data[info.st_size];
+    char *all_data = (char*) malloc(info.st_size);
     
     FILE* f = fopen(path, "rb");
     fread(all_data, info.st_size, 1, f);
@@ -840,6 +836,8 @@ int MyFS::addFile(BlockDevice* bd, char* path) {
     memcpy(restData, all_data + (blocksToWrite - 1) * BLOCK_SIZE, rest);
     bd->write(dataPointers[blocksToWrite - 1] + DATA_START, restData);
     superBlockNumFilesIncrease(bd);
+    
+    free(all_data);
     
     return 0;
 }

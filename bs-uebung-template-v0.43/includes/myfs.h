@@ -90,7 +90,7 @@ public:
     int writeToBufferToBlockDevice(BlockDevice* bd);
     void createSuperBlock(BlockDevice* bd);
     int createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer, u_int32_t iNodePointer);
-    bool checkFileExist(BlockDevice* bd, char* path);
+    int checkFileExist(BlockDevice* bd,const char* path);
     u_int32_t getFreeInodePointer(BlockDevice* bd);
     int checkFreeDataSize(BlockDevice* bd, u_int32_t size);
     u_int32_t getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray);
@@ -103,6 +103,8 @@ public:
     
     int getNumbOfFiles();
     inode* getInodesOfFiles(int numbOfFiles);
+    u_int32_t getCurrentDataPointer(u_int32_t startPointer,u_int32_t dataBlockNr);
+    u_int32_t nextDataPointer(u_int32_t dataPointer);
     
 };
 

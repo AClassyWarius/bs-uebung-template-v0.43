@@ -22,7 +22,9 @@ int main(int argc, char *argv[]) {
     argv[2] = "file.txt";
     argv[3] = "text.txt";
     argv[4] = "bigdata.txt";
-    argc = 5;
+    argv[5] = "pic.jpg";
+    argv[6] = "movie.MOV";
+    argc = 7;
     //---------------------------------------------------
     
     
@@ -36,6 +38,7 @@ int main(int argc, char *argv[]) {
     for (auto arguments = 2; arguments < argc; arguments++) {
         MyFS::Instance()->addFile(bd, argv[arguments]);
     }
+    
     
     return 0;
 }
