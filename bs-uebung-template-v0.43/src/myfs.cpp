@@ -16,7 +16,7 @@
 #define DEBUG_RETURN_VALUES
 
 #include "macros.h"
-
+#include <errno.h>
 #include "myfs.h"
 #include "myfs-info.h"
 
@@ -159,70 +159,74 @@ int MyFS::fuseUtime(const char *path, struct utimbuf *ubuf) {
 int MyFS::fuseOpen(const char *path, struct fuse_file_info *fileInfo) {
     LOGM();
 
-    // TODO: Implement this!
-    
-    
+    uint32_t inodeNumber = checkFileExist(&bd_fuse,path+1);
+    if(inodeNumber < 0) {
+    	RETURN(-(ENOENT))
+    }
+    char block [BLOCK_SIZE];
+    FileHandleBuffer* fileBuffer = new FileHandleBuffer;
+    LOGF("%s Buffer auf Adresse %ld erstellt.\n",path,fileBuffer);
+    fileBuffer->inodeNumber = inodeNumber;											//inodeNumber in fileBuffer festlegen
+    bd_fuse.read(INODE_START + inodeNumber,block);
+    inode* node = (inode*)block;
+    fileBuffer->fileSize = node->st_size;											//dateiGröße in fileBuffer schreiben
+    fileBuffer->absoluteDataBlockNumber = node->first_data_block + DATA_START;		//Absolute DataBlock-Nummer eintragen
+    fileBuffer->relativeDataBlockNumber = 0;
+    fileBuffer->startDataPointer = node->first_data_block;							//relative DataBlock-Nummer eintragen
+    fileBuffer->currentDataPointer = node->first_data_block;						//ersten DataPointer in fileBuffer schreiben
+    bd_fuse.read(DATA_START + node->first_data_block,fileBuffer->dataBlockBuffer);	//ersten dataBlock in fileBuffer schreiben
+    uint32_t fatBlockOffset = node->first_data_block / (BLOCK_SIZE/POINTER_SIZE);
+    bd_fuse.read(FAT_START + fatBlockOffset,fileBuffer->fatBuffer);					//fatBlock mit ersten DataPointer Eintrag in Buffer schreiben
+    fileBuffer->fatBlockNumber = fatBlockOffset;
+    fileInfo->fh = (uint64_t)fileBuffer;
     RETURN(0);
 }
     
 
 int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
-    LOGM();
-    int count = getNumbOfFiles();
-    if (count > 0) {
-    	inode node[count];
-    	getInodesOfFiles(count,node);
-        for (int i = 0; i < count; i++) {
-            string filename = "/";
-            filename += node[i].file_name;
-            if (strcmp(path, filename.c_str()) == 0) {
-                uint32_t length = node[i].st_size;
-                //LOGF("\n length = %d offset = %lld \n", length, offset);
-                
-                if(offset < length) {
-                    //LOGF("\n FINDME offset: %lld < length: %d \n", offset, length);
-                    uint32_t blockOffset = offset / BLOCK_SIZE;
-                    uint32_t byteOffset = offset - (blockOffset * BLOCK_SIZE);
-                    u_int32_t startDataBlock = node[i].first_data_block;
-                    uint32_t currentDataPointer = getCurrentDataPointer(startDataBlock, blockOffset);
-                    //LOGF("\n blockOffset: %d \n byteOffset: %d \n startDataBlock: %d \n currentDataPointer: %d", blockOffset, byteOffset, startDataBlock, currentDataPointer);
-                    
-                    
-                    if(offset + size > length) {
-                        size = length - offset;
-                        //LOGF("\n new size = %zu \n", size);
-                    }
-                    char requestedData[size];
-                    char blockData[BLOCK_SIZE] = {0};
-                    size_t copiedBytes = 0;
-                    
-                    while(copiedBytes < size) {
-                        readFromBuffer(DATA_START + currentDataPointer, blockData, &bd_fuse);
-                        //LOGF("\n blockdata = %s \n", blockData);
-                        if(byteOffset + size - copiedBytes > BLOCK_SIZE && nextDataPointer(currentDataPointer) != 0xFFFFFFFF){
-                            //LOGF("\n blockOffset: %d \n byteOffset: %d \n startDataBlock: %d \n currentDataPointer: %d", blockOffset, byteOffset, startDataBlock, currentDataPointer);
-                            
-                            memcpy(requestedData + copiedBytes, blockData + byteOffset, BLOCK_SIZE - byteOffset);
-                            copiedBytes += BLOCK_SIZE - byteOffset;
-                            byteOffset = 0;
-                            currentDataPointer = nextDataPointer(currentDataPointer);
-                        } else if(nextDataPointer(currentDataPointer) == 0xFFFFFFFF){
-                            memcpy(requestedData + copiedBytes, blockData + byteOffset, size - copiedBytes);
-                            copiedBytes += size - copiedBytes;
-                        } else {
-                            memcpy(requestedData + copiedBytes, blockData + byteOffset, size - copiedBytes);
-                            copiedBytes += size;
-                        }
-                    }
-                    memcpy(buf,requestedData,size);
-                }else {
-                    size = 0;
-                }
-                RETURN (size);
-            }
-        }
+	LOGM();
+	FileHandleBuffer* fileBuffer = (FileHandleBuffer*)fileInfo->fh;
+	LOGF("fileSize = %d \nrequestedSize = %d \noffset = %d",fileBuffer->fileSize,size,offset);
+	if(offset < fileBuffer->fileSize) {
+		 uint32_t blockOffset = offset / BLOCK_SIZE;
+		 uint32_t byteOffset = offset - (blockOffset * BLOCK_SIZE);
+		 if(offset + size > fileBuffer->fileSize) {
+			 LOGF("Size reduced from %d",size);
+			 size = fileBuffer->fileSize - offset;
+			 LOGF(" to %d \n",size);
+		 }
+		 char requestedData[size];
+		 size_t copiedBytes = 0;
+
+		 if(fileBuffer->relativeDataBlockNumber != blockOffset) {			//Angefragte Block befindet sich nicht im Buffer, dataPointer neu suchen und block laden
+			 LOGF("RelativeBlockNumber != blockOffset!: %d != %d \n",fileBuffer->relativeDataBlockNumber,blockOffset);
+			 fileBuffer->currentDataPointer = getRequestedDataPointer(fileBuffer,blockOffset);
+			 fileBuffer->relativeDataBlockNumber = blockOffset;
+			 readFromFileBuffer(fileBuffer,&bd_fuse);
+		 }
+		 while(copiedBytes < size) {
+			 if(byteOffset + size - copiedBytes > BLOCK_SIZE && nextDataPointer(fileBuffer, fileBuffer->currentDataPointer) != 0xFFFFFFFF){
+				 memcpy(requestedData + copiedBytes, fileBuffer->dataBlockBuffer + byteOffset, BLOCK_SIZE - byteOffset);
+				 copiedBytes += BLOCK_SIZE - byteOffset;
+				 byteOffset = 0;
+				 fileBuffer->currentDataPointer = nextDataPointer(fileBuffer,fileBuffer->currentDataPointer);
+				 fileBuffer->relativeDataBlockNumber += 1;
+				 readFromFileBuffer(fileBuffer,&bd_fuse);
+			 } else {
+				 memcpy(requestedData + copiedBytes, fileBuffer->dataBlockBuffer + byteOffset, size - copiedBytes);
+				 copiedBytes += size;
+			 }
+		 }
+		 if(nextDataPointer(fileBuffer,fileBuffer->currentDataPointer) != 0xFFFFFFFF) {			//Prepare next Requested block,if this is not the end of the file
+		 fileBuffer->currentDataPointer = nextDataPointer(fileBuffer,fileBuffer->currentDataPointer);
+		 fileBuffer->relativeDataBlockNumber += 1;
+		 readFromFileBuffer(fileBuffer,&bd_fuse);
+		 }
+		 memcpy(buf,requestedData,size);
+	}else {
+        size = 0;
     }
-    RETURN(-(ENOENT));
+    RETURN(size);
 }
 
 int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
@@ -245,9 +249,8 @@ int MyFS::fuseFlush(const char *path, struct fuse_file_info *fileInfo) {
 
 int MyFS::fuseRelease(const char *path, struct fuse_file_info *fileInfo) {
     LOGM();
-    
-    // TODO: Implement this!
-    
+    FileHandleBuffer* fileBuffer = (FileHandleBuffer*)fileInfo->fh;
+    delete fileBuffer;
     RETURN(0);
 }
 
@@ -418,14 +421,14 @@ void MyFS::getInodesOfFiles(int numbOfFiles, inode* inodes) {
     }
 }
     
-u_int32_t MyFS::getCurrentDataPointer(u_int32_t startPointer,u_int32_t dataBlockNr) {
+u_int32_t MyFS::getRequestedDataPointer(FileHandleBuffer* fib,u_int32_t dataBlockNr) {
     u_int32_t counter = 0;
+    uint32_t startPointer = fib->startDataPointer;
     u_int32_t blockOffset = startPointer / (BLOCK_SIZE /POINTER_SIZE);
     u_int32_t pointerOffset = startPointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
-    char fatBlock[BLOCK_SIZE];
-    fat* s_fat = (fat*) fatBlock;
+    fat* s_fat = (fat*) fib->fatBuffer;
     while(counter < dataBlockNr) {
-        readFromBuffer(FAT_START + blockOffset, fatBlock, &bd_fuse);
+        readFromFatBuffer(fib,blockOffset, &bd_fuse);
         startPointer = s_fat->table[pointerOffset];
         blockOffset = startPointer / (BLOCK_SIZE / POINTER_SIZE);
         pointerOffset = startPointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
@@ -433,14 +436,31 @@ u_int32_t MyFS::getCurrentDataPointer(u_int32_t startPointer,u_int32_t dataBlock
     }
     return startPointer;
 }
-    
-u_int32_t MyFS::nextDataPointer(u_int32_t dataPointer) {
+
+u_int32_t MyFS::nextDataPointer(FileHandleBuffer* fib, u_int32_t dataPointer) {
     u_int32_t blockOffset = dataPointer / (BLOCK_SIZE / POINTER_SIZE);
     u_int32_t pointerOffset = dataPointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
-    char fatBlock[BLOCK_SIZE];
-    fat* s_fat = (fat*) fatBlock;
-    readFromBuffer(FAT_START + blockOffset, fatBlock,&bd_fuse);
+    fat* s_fat = (fat*) fib->fatBuffer;
+    readFromFatBuffer(fib,blockOffset,&bd_fuse);
     return s_fat->table[pointerOffset];
+}
+
+int MyFS::readFromFileBuffer(FileHandleBuffer* fib, BlockDevice* bd) {
+		if(fib->currentDataPointer + DATA_START == fib->absoluteDataBlockNumber) {	//is Block already loaded?
+			return 0;
+		}
+		bd->read(DATA_START+fib->currentDataPointer,fib->dataBlockBuffer);		//get the Block and update absoluteBlockNumber.
+		fib->absoluteDataBlockNumber = fib->currentDataPointer + DATA_START;
+		return 0;
+}
+int MyFS::readFromFatBuffer(FileHandleBuffer* fib, uint32_t fatBlockOffset, BlockDevice* bd) {
+
+    if (fib->fatBlockNumber == fatBlockOffset) {
+        return 0;
+    }
+    bd->read(FAT_START + fatBlockOffset, fib->fatBuffer);
+    fib->fatBlockNumber = fatBlockOffset;
+    return 0;
 }
     
 //---------------------------------------------------------------------------------------

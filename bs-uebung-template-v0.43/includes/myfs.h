@@ -27,11 +27,23 @@ private:
     static MyFS *_instance;
     FILE *logFile;
     
-    struct buffer {
+    struct Buffer {
         u_int32_t blockNumber = 0xFFFFFFFF;
         char blockContent[BLOCK_SIZE];
     }bdBuffer;
     
+    struct FileHandleBuffer {
+    	uint32_t inodeNumber = 0;
+    	uint32_t startDataPointer = 0;
+    	uint32_t currentDataPointer = 0;
+    	uint32_t absoluteDataBlockNumber = 0;
+    	uint32_t relativeDataBlockNumber = 0;
+    	uint32_t fatBlockNumber = 0;
+    	uint32_t fileSize = 0;
+    	char dataBlockBuffer[BLOCK_SIZE] = {0};
+    	char fatBuffer[BLOCK_SIZE] = {0};
+    };
+
 public:
     static MyFS *Instance();
     
@@ -104,8 +116,10 @@ public:
     int getNumbOfFiles();
     void getInodesOfFiles(int numbOfFiles, inode* inodes);
     u_int32_t getCurrentDataPointer(u_int32_t startPointer,u_int32_t dataBlockNr);
-    u_int32_t nextDataPointer(u_int32_t dataPointer);
-    
+    u_int32_t getRequestedDataPointer(FileHandleBuffer* fib,uint32_t dataBlockNr);
+    u_int32_t nextDataPointer(FileHandleBuffer* fib, u_int32_t dataPointer);
+    int readFromFileBuffer(FileHandleBuffer* fib, BlockDevice* bd);
+    int readFromFatBuffer(FileHandleBuffer* fib,uint32_t dataPointer, BlockDevice* bd);
 };
 
 #endif /* myfs_h */
