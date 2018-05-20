@@ -66,7 +66,8 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
     int count = getNumbOfFiles();
     
     if (count > 0 && (strcmp(path, "/") != 0)) {
-        inode* node = getInodesOfFiles(count);
+    	inode node[count];
+    	getInodesOfFiles(count,node);
         for (int i = 0; i < count; i++) {
             string filename = "/";
             filename += node[i].file_name;
@@ -169,7 +170,8 @@ int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struc
     LOGM();
     int count = getNumbOfFiles();
     if (count > 0) {
-        inode* node = getInodesOfFiles(count);
+    	inode node[count];
+    	getInodesOfFiles(count,node);
         for (int i = 0; i < count; i++) {
             string filename = "/";
             filename += node[i].file_name;
@@ -288,7 +290,8 @@ int MyFS::fuseReaddir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
     LOGF("\n<---- Getting the number of files %d --->\n", count);
     
     if (count > 0) {
-        inode* node = getInodesOfFiles(count);
+    	inode node[count];
+    	getInodesOfFiles(count,node);
         for (int i = 0; i < count; i++) {
             const char* name = node[i].file_name;
             filler(buf, name, NULL, 0);
@@ -392,19 +395,17 @@ int MyFS::getNumbOfFiles() {
     return sb->numbFiles;
 }
 
-inode* MyFS::getInodesOfFiles(int numbOfFiles) {
+void MyFS::getInodesOfFiles(int numbOfFiles, inode* inodes) {
     char iMap[BLOCK_SIZE] = {0};
     char buffer[BLOCK_SIZE] = {0};
-    
+
     bd_fuse.read(INDOE_MAP_START, iMap);
-    inode* inodes = new inode[numbOfFiles];
-    
     u_int8_t bitMask;
     int count = 0;
-    
+
     for (int byte = 0; (byte < NUM_DIR_ENTRIES / 8) && (count < numbOfFiles); byte++) {
         bitMask = 0x80;
-        
+
         for (int bitOffset = 0; (bitOffset < 8) && (count < numbOfFiles); bitOffset++) {
             if ((iMap[byte] & bitMask) == bitMask) {
                 bd_fuse.read(INODE_START + bitOffset + byte * 8, buffer);
@@ -415,7 +416,6 @@ inode* MyFS::getInodesOfFiles(int numbOfFiles) {
             bitMask >>= 1;
         }
     }
-    return inodes;
 }
     
 u_int32_t MyFS::getCurrentDataPointer(u_int32_t startPointer,u_int32_t dataBlockNr) {

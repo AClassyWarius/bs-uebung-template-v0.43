@@ -102,7 +102,7 @@ public:
     //------------------- Methods for mount.myfs -------------------------------
     
     int getNumbOfFiles();
-    inode* getInodesOfFiles(int numbOfFiles);
+    void getInodesOfFiles(int numbOfFiles, inode* inodes);
     u_int32_t getCurrentDataPointer(u_int32_t startPointer,u_int32_t dataBlockNr);
     u_int32_t nextDataPointer(u_int32_t dataPointer);
     
