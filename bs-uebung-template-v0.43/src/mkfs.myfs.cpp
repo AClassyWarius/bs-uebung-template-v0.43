@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     // TODO: Implement file system generation & copying of files here
     
     
-    //-------------- zum testen -------------------------
+    /*/-------------- zum testen -------------------------
     argv[1] = "container.bin";
     argv[2] = "file.txt";
     argv[3] = "text.txt";
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     argv[5] = "pic.jpg";
     argv[6] = "movie.MOV";
     argc = 7;
-    //---------------------------------------------------
+    //---------------------------------------------------*/
     
     
     

@@ -1,2 +1,0 @@
-Das ist ein Nachricht von der Datei "file.txt", hiermit möchte ich testen ob mein Filesystem auch wirklich funktioniert.
-Sollte ich alles sehen was ich hier geschrieben habe, sollte es passen :D

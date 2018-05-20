@@ -59,12 +59,12 @@ int main(int argc, char *argv[]) {
     char* logFileName= NULL;
     char* mountPointName= NULL;
     
-    //---------------------- zum testen ---------------------------------------
+    /*/---------------------- zum testen ---------------------------------------
     argc = 4;
     argv[1] = "/Users/mariuskemmling/Projekte/Filesystem/bs-uebung-template-v0.43/container.bin";
     argv[2] = "/Users/mariuskemmling/Projekte/Filesystem/bs-uebung-template-v0.43/log.txt";
     argv[3] = "mount-dir";
-    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------*/
     
     // parse arguments
     if(argc > 3) {
