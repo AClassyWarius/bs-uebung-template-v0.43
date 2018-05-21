@@ -82,13 +82,14 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
                 statbuf->st_size = node[i].st_size;
                 statbuf->st_blocks = node[i].st_blocks;
                 statbuf->st_blksize = BLOCK_SIZE;
+
             }
         }
     }
     RETURN(0);
     return -(ENOENT);
 }
- 
+
 
 int MyFS::fuseReadlink(const char *path, char *link, size_t size) {
     //LOGM();
@@ -110,11 +111,32 @@ int MyFS::fuseMkdir(const char *path, mode_t mode) {
 
 int MyFS::fuseUnlink(const char *path) {
     LOGM();
-    
-    // TODO: Implement this!
-    
-    RETURN(0);
+    path++;
+    int iNodeNumber = checkFileExist(&bd_fuse,path);
+    LOGF("iNodeNumber = %d , filename = %s",iNodeNumber,path);
+    if(iNodeNumber >= 0) {									//Existiert die Datei?
+    	char block[BLOCK_SIZE];
+    	superBlockNumFilesDecrease(&bd_fuse);				//FileNumber im SuperBlock verringern
+    	bd_fuse.read(INDOE_MAP_START,block);				//iMap bit der Datei finden
+    	uint32_t byteOffset = iNodeNumber / 8;
+    	uint32_t bitOffset = iNodeNumber - byteOffset * 8;
+    	uint8_t bitMask = 0x80 >> bitOffset;
+    	bitMask = ~bitMask;
+    	block[byteOffset] &= bitMask;						//bit auf 0 setzen
+    	bd_fuse.write(INDOE_MAP_START, block);
+    	bd_fuse.read(INODE_START + iNodeNumber,block);
+    	inode* node = (inode*)block;
+    	uint32_t numberOfDataPointers = node->st_blocks;
+    	uint32_t* allDataPointers = (uint32_t*)malloc(numberOfDataPointers * 4);
+    	allDataPointers[0] = node->first_data_block;
+    	getAllUsedDataPointers(allDataPointers,numberOfDataPointers);
+    	deleteDMapEntries(allDataPointers,numberOfDataPointers);
+    	free(allDataPointers);
+    	RETURN(0);
+    }
+    RETURN(-(ENOENT));
 }
+
 
 int MyFS::fuseRmdir(const char *path) {
     //LOGM();
@@ -462,7 +484,61 @@ int MyFS::readFromFatBuffer(FileHandleBuffer* fib, uint32_t fatBlockOffset, Bloc
     fib->fatBlockNumber = fatBlockOffset;
     return 0;
 }
-    
+
+void MyFS::getAllUsedDataPointers(uint32_t* dataPointerArray, uint32_t sizeOfArray) {
+    char table[BLOCK_SIZE] = {0};
+    fat* s_fat = (fat*) table;
+    u_int32_t blockOffset = dataPointerArray[0] / (BLOCK_SIZE / POINTER_SIZE);
+    uint32_t pointerOffset = dataPointerArray[0] - blockOffset * (BLOCK_SIZE/POINTER_SIZE);
+    readFromBuffer(FAT_START + blockOffset, table, &bd_fuse);
+	for(uint32_t i = 0 ; i < sizeOfArray - 1;i++) {
+		readFromBuffer(FAT_START + blockOffset,table,&bd_fuse);
+		dataPointerArray[i + 1] = s_fat->table[pointerOffset];
+		blockOffset = dataPointerArray[i + 1] / (BLOCK_SIZE /POINTER_SIZE);
+		pointerOffset = dataPointerArray[i + 1] - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
+
+	/*	if(blockOffset != dataPointerArray[i] / (BLOCK_SIZE / POINTER_SIZE)) {
+		blockOffset = s_fat->table[dataPointerArray[i] / (BLOCK_SIZE / POINTER_SIZE)];
+		readFromBuffer(FAT_START + blockOffset, table, bd);
+		}
+		dataPointerArray[i+1] = s_fat->table[dataPointerArray[i]-blockOffset * (BLOCK_SIZE/POINTER_SIZE)];
+	*/}
+}
+
+/*Verringert den Wert der vorhandenen Dateien im Filesystem um 1.
+ *@param bd - BlockDevice in dem der Wert erhöht werden soll.
+*/
+void MyFS::superBlockNumFilesDecrease(BlockDevice* bd) {
+    char buffer[BLOCK_SIZE] = {0};
+    bd->read(SUPER_BLOCK_START, buffer);
+    super_block* sb = (super_block*) buffer;
+    sb->numbFiles--;
+    bd->write(SUPER_BLOCK_START, buffer);
+}
+
+void MyFS::deleteDMapEntries(uint32_t* dataPointerArray, uint32_t sizeOfArray) {
+    char dataDMap[BLOCK_SIZE] = {0};
+    u_int8_t bitMask;
+    uint32_t blockOffset = dataPointerArray[0] / (BLOCK_SIZE * 8);
+    uint32_t byteOffset;
+    uint32_t bitOffset;
+    readFromBuffer(DATA_MAP_START + blockOffset,dataDMap,&bd_fuse);
+    for(uint32_t i = 0; i < sizeOfArray;i++) {
+    	if(blockOffset != dataPointerArray[i] / (BLOCK_SIZE * 8)) {
+    		blockOffset = dataPointerArray[i] / (BLOCK_SIZE * 8);
+    		writeToBufferToBlockDevice(&bd_fuse);
+    		readFromBuffer(DATA_MAP_START + blockOffset,dataDMap,&bd_fuse);
+    	}
+    	byteOffset = (dataPointerArray[i] - (blockOffset * BLOCK_SIZE * 8)) / 8;
+    	bitOffset = dataPointerArray[i] - ((blockOffset * BLOCK_SIZE * 8) + (byteOffset * 8));
+    	bitMask = 0x80 >> bitOffset;
+    	bitMask = ~bitMask;
+    	LOGF("Lösche Pointer %d",dataPointerArray[i]);
+    	dataDMap[byteOffset] &= bitMask;
+    	writeToBuffer(DATA_MAP_START + blockOffset,dataDMap,&bd_fuse);
+    }
+    writeToBufferToBlockDevice(&bd_fuse);
+}
 //---------------------------------------------------------------------------------------
     
     
@@ -720,6 +796,7 @@ u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_
     }
     return -(ENOSPC);
 }
+
 
 /* Gibt die Anzahl der benötigten Blöcke zurück.
  *

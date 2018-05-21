@@ -115,11 +115,13 @@ public:
     
     int getNumbOfFiles();
     void getInodesOfFiles(int numbOfFiles, inode* inodes);
-    u_int32_t getCurrentDataPointer(u_int32_t startPointer,u_int32_t dataBlockNr);
     u_int32_t getRequestedDataPointer(FileHandleBuffer* fib,uint32_t dataBlockNr);
     u_int32_t nextDataPointer(FileHandleBuffer* fib, u_int32_t dataPointer);
     int readFromFileBuffer(FileHandleBuffer* fib, BlockDevice* bd);
     int readFromFatBuffer(FileHandleBuffer* fib,uint32_t dataPointer, BlockDevice* bd);
+    void deleteDMapEntries(uint32_t* dataPointerArray, uint32_t sizeOfArray);
+    void getAllUsedDataPointers(uint32_t* dataPointerArray, uint32_t sizeOfArray);
+    void superBlockNumFilesDecrease(BlockDevice* bd);
 };
 
 #endif /* myfs_h */
