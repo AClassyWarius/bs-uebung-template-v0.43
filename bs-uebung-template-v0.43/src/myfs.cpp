@@ -15,6 +15,13 @@
 #define DEBUG_METHODS
 #define DEBUG_RETURN_VALUES
 
+#ifndef _DARWIN_FEATURE_64_BIT_INODE
+#define st_ctimespec st_ctim
+#define st_birthtimespec st_ctim
+#define st_atimespec st_atim
+#define st_mtimespec st_mtim
+#endif
+
 #include "macros.h"
 #include <errno.h>
 #include "myfs.h"
@@ -42,29 +49,27 @@ MyFS::~MyFS() {
  */
 int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
     LOGM();
-    
     // TODO: Implement this!
-    
+
     statbuf->st_uid = getuid();     /* The owner of the file/directory is the user who mountned the filesystem */
     statbuf->st_gid = getgid();     /* The group of the file/directory is the same as the group of the user who mounted
                                      the filesystem */
-    
-    if (statbuf->st_ctim.tv_sec == 0) {        /* If birthtime 01.01.1970 01:00 */
-           statbuf->st_ctim.tv_sec = time(0);
-       }
-    
-    statbuf->st_atim.tv_sec = time(0);     /* The last access of the file/directory is right now */
-    statbuf->st_mtim.tv_sec = time(0);     /* The last modification of the file/directory is right now */
-    
+    if (statbuf->st_birthtimespec.tv_sec == 0) {        /* If birthtime 01.01.1970 01:00 */
+        statbuf->st_birthtimespec.tv_sec = time(0);
+    }
+
+    statbuf->st_atimespec.tv_sec = time(0);     /* The last access of the file/directory is right now */
+    statbuf->st_mtimespec.tv_sec = time(0);     /* The last modification of the file/directory is right now */
+
     if (strcmp(path, "/") == 0) {
         LOGF("\n<--- Write st_mode and st_nlink for: %s --->\n", path);
         statbuf->st_mode = S_IFDIR | 0555;
         statbuf->st_nlink = 2;
         return 0;
     }
-    
+
     int count = getNumbOfFiles();
-    
+
     if (count > 0 && (strcmp(path, "/") != 0)) {
     	inode node[count];
     	getInodesOfFiles(count,node);
@@ -76,18 +81,18 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
                 LOGF("\n<--- Write statbuf for: %s %s --->\n", path, path2);
                 statbuf->st_uid = node[i].user_id;
                 statbuf->st_gid = node[i].grp_id;
-                statbuf->st_ctim.tv_sec = node[i].ctime;
+                statbuf->st_ctimespec.tv_sec = node[i].ctime;
                 statbuf->st_mode = node[i].protection;
                 statbuf->st_nlink = 1;
                 statbuf->st_size = node[i].st_size;
                 statbuf->st_blocks = node[i].st_blocks;
                 statbuf->st_blksize = BLOCK_SIZE;
-
+                RETURN(0);
             }
         }
     }
-    RETURN(0);
     return -(ENOENT);
+
 }
 
 
