@@ -40,6 +40,7 @@ private:
     	uint32_t relativeDataBlockNumber = 0;
     	uint32_t fatBlockNumber = 0;
     	uint32_t fileSize = 0;
+    	uint32_t numDataPointers = 0;
     	char dataBlockBuffer[BLOCK_SIZE] = {0};
     	char fatBuffer[BLOCK_SIZE] = {0};
     };
@@ -99,9 +100,9 @@ public:
     void initBlockDevice(BlockDevice* bd);
     int readFromBuffer(u_int32_t position, char* data, BlockDevice* bd);
     int writeToBuffer(u_int32_t position, char* data, BlockDevice* bd);
-    int writeToBufferToBlockDevice(BlockDevice* bd);
+    int writeBufferToBlockDevice(BlockDevice* bd);
     void createSuperBlock(BlockDevice* bd);
-    int createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer, u_int32_t iNodePointer);
+    void createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer, u_int32_t iNodePointer);
     int checkFileExist(BlockDevice* bd,const char* path);
     u_int32_t getFreeInodePointer(BlockDevice* bd);
     int checkFreeDataSize(BlockDevice* bd, u_int32_t size);
@@ -112,7 +113,7 @@ public:
     int addFile(BlockDevice* bd, char* path);
     
     //------------------- Methods for mount.myfs -------------------------------
-    
+    void createNewInode(BlockDevice* bd, const char* path, u_int32_t dataPointer, u_int32_t iNodePointer);
     int getNumbOfFiles();
     void getInodesOfFiles(int numbOfFiles, inode* inodes);
     u_int32_t getRequestedDataPointer(FileHandleBuffer* fib,uint32_t dataBlockNr);
@@ -122,6 +123,9 @@ public:
     void deleteDMapEntries(uint32_t* dataPointerArray, uint32_t sizeOfArray);
     void getAllUsedDataPointers(uint32_t* dataPointerArray, uint32_t sizeOfArray);
     void superBlockNumFilesDecrease(BlockDevice* bd);
+    void writeFromDataBufferToBlockDevice(FileHandleBuffer* fhb, BlockDevice* bd);
+    uint32_t unusedBytesInDataBlock(uint32_t dataPointer);
+    void writeAdditionalFatEntries(BlockDevice* bd, uint32_t lastPointer, u_int32_t* pointers, u_int32_t sizeOfArray);
 };
 
 #endif /* myfs_h */

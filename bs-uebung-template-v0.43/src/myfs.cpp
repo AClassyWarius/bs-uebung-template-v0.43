@@ -103,9 +103,20 @@ int MyFS::fuseReadlink(const char *path, char *link, size_t size) {
 
 int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
     LOGM();
-    
-    // TODO: Implement this!
-    
+    LOGF("path: %s, mode: %ld , dev %ld",path,mode,dev);
+    int err;
+    u_int32_t iNodePointer = getFreeInodePointer(&bd_fuse);
+    if (iNodePointer == 0xFFFFFFFF) {
+    	RETURN(-ENOSPC);
+    }
+    u_int32_t dataPointers[1];
+    err = getFreeDataPointers(&bd_fuse, dataPointers,1);
+    if(err) {
+    	//TODO: Free the taken DataPointer or else it will be lost forever
+    	RETURN(-EFBIG);
+    }
+    createNewInode(&bd_fuse, path+1, dataPointers[0], iNodePointer);
+    writeFatEntries(&bd_fuse, dataPointers, 1);
     RETURN(0);
 }
 
@@ -182,10 +193,15 @@ int MyFS::fuseUtime(const char *path, struct utimbuf *ubuf) {
     //LOGM();
     return 0;
 }
-
+/* Erstellt für eine geöffnete Datei ein FileHandleBuffer.
+ * Der FileHandleBuffer beinhaltet Informationen über die Datei und ein DataBuffer/FatBuffer für das Lesen und schreiben.
+ *
+ * @param path - Dateiname der geöffneten Datei.
+ * @param fileInfo - In der fileInfo wird der Pointer zum FileHandleBuffer gespeichert.
+ * @return - 0 bei erfolgreichen öffnen, -ENOENT wenn Datei nicht gefunden wurde.
+ */
 int MyFS::fuseOpen(const char *path, struct fuse_file_info *fileInfo) {
     LOGM();
-
     uint32_t inodeNumber = checkFileExist(&bd_fuse,path+1);
     if(inodeNumber < 0) {
     	RETURN(-(ENOENT))
@@ -201,6 +217,7 @@ int MyFS::fuseOpen(const char *path, struct fuse_file_info *fileInfo) {
     fileBuffer->relativeDataBlockNumber = 0;
     fileBuffer->startDataPointer = node->first_data_block;							//relative DataBlock-Nummer eintragen
     fileBuffer->currentDataPointer = node->first_data_block;						//ersten DataPointer in fileBuffer schreiben
+    fileBuffer->numDataPointers = node->st_blocks;
     bd_fuse.read(DATA_START + node->first_data_block,fileBuffer->dataBlockBuffer);	//ersten dataBlock in fileBuffer schreiben
     uint32_t fatBlockOffset = node->first_data_block / (BLOCK_SIZE/POINTER_SIZE);
     bd_fuse.read(FAT_START + fatBlockOffset,fileBuffer->fatBuffer);					//fatBlock mit ersten DataPointer Eintrag in Buffer schreiben
@@ -209,7 +226,17 @@ int MyFS::fuseOpen(const char *path, struct fuse_file_info *fileInfo) {
     RETURN(0);
 }
     
-
+/* Liest aus einer Datei ab offset bis offset + size. Die zu lesenden Bytes müssen aus den DataBlocks der Datei in den buf
+ * geschrieben werden. Sollte fuseRead() über Dateiende hinaus lesen wollen muss size gekürzt werden.
+ *
+ * @param path - Name der Datei aus der gelesen wird.
+ * @param buf - Buffer in dem die zu lesenden Bytes reingeschrieben werden.
+ * @param size - Die Anzahl der Bytes die das Programm das fuseRead() aufgerufen hat, lesen will.
+ * Muss verkleinert werden falls das Programm über Dateiende hinaus lesen will
+ * @param offset - Position ab der gelesen wird in der Datei in Bytes.
+ * @param fileInfo - beinhaltet den Pointer zum FileBuffer.
+ * @return - die Menge der Bytes die in buf reingeschrieben wurde.
+ */
 int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
 	LOGM();
 	FileHandleBuffer* fileBuffer = (FileHandleBuffer*)fileInfo->fh;
@@ -255,13 +282,82 @@ int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struc
     }
     RETURN(size);
 }
-
+/* Schreibt von offset bis offset + size mit Inhalt aus buf in die Datei path.
+ *
+ * @param path - Datei in die geschrieben wird.
+ * @param buf - Der Inhalt der geschrieben werden soll.
+ * @param size - Die Menge an Bytes die geschrieben werden soll.
+ * @param offset - Die Stelle ab der geschrieben werden soll  in Bytes.
+ * @param fuse_file_info - Informationen über die Datei die vorher in fuseOpen() gefüllt wurde.
+ * @return - Die Anzahl der geschriebenen Bytes.
+ */
 int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
     LOGM();
-    
-    // TODO: Implement this!
-    
-    RETURN(0);
+    LOGF("Path: %s ,Buffer zu Schreiben:, %s size : %ld , offset : %ld \n",path,buf,size,offset);
+    FileHandleBuffer* fileBuffer = (FileHandleBuffer*)fileInfo->fh;
+    uint32_t blockOffsetFirst = offset / BLOCK_SIZE;
+    uint32_t blockOffsetLast = getMaxBlocksNeeded(size+offset);
+    uint32_t byteOffsetFirst = offset - (blockOffsetFirst * BLOCK_SIZE);
+   // uint32_t blocksToWrite = getMaxBlocksNeeded(size);
+    uint32_t writtenBytes = 0;
+    if(fileBuffer->numDataPointers < blockOffsetLast) {													//Prüfen ob genug DataBlocks vorhanden sind.
+    		LOGF("Wir brauchen mehr Pointer! %d neue Pointer \n",blockOffsetLast - fileBuffer->numDataPointers);
+    		int err;
+    		uint32_t amountOfPointersNeeded = blockOffsetLast - fileBuffer->numDataPointers;
+    		uint32_t newNeededPointers[amountOfPointersNeeded];
+    		err = getFreeDataPointers(&bd_fuse,newNeededPointers,amountOfPointersNeeded);
+    		//TODO: Wir sollten uns merken wo wir den letzten freien DataPointer gefunden haben, sonst quadratische laufzeit.
+    		if(err) {
+    			//TODO: Alle Pointer freigeben die in anspruch genommen worden sind, wenn Datei zu groß ist!.
+    			RETURN(EFBIG);
+    		}
+    		uint32_t lastPointer = getRequestedDataPointer(fileBuffer,fileBuffer->numDataPointers - 1); //Suche letzten Pointer
+    		fileBuffer->numDataPointers += amountOfPointersNeeded;										//Erhöhe Anzahl der DataPointers der Datei.
+    		writeAdditionalFatEntries(&bd_fuse,lastPointer,newNeededPointers,amountOfPointersNeeded);	//Neue Pointer Eintragen in BlockDevice
+    		uint32_t fatBlockOffset = fileBuffer->startDataPointer / (BLOCK_SIZE/POINTER_SIZE);
+    		bd_fuse.read(FAT_START + fatBlockOffset,fileBuffer->fatBuffer);								//update buffer, sonst sind veraltete falsche Werte im Buffer
+    		fileBuffer->fatBlockNumber = fatBlockOffset;
+    }
+	 if(fileBuffer->relativeDataBlockNumber != blockOffsetFirst) {			//Angefragte Block befindet sich nicht im Buffer, dataPointer suchen und Block laden
+		 LOGF("RelativeBlockNumber != blockOffset!: %d != %d \n",fileBuffer->relativeDataBlockNumber,blockOffsetFirst);
+		 fileBuffer->currentDataPointer = getRequestedDataPointer(fileBuffer,blockOffsetFirst);
+		 fileBuffer->relativeDataBlockNumber = blockOffsetFirst;
+		 readFromFileBuffer(fileBuffer,&bd_fuse);
+	 }
+
+    while(writtenBytes < size) {
+		 if(byteOffsetFirst + size - writtenBytes > BLOCK_SIZE && nextDataPointer(fileBuffer, fileBuffer->currentDataPointer) != 0xFFFFFFFF){
+				 memcpy(fileBuffer->dataBlockBuffer + byteOffsetFirst, buf + writtenBytes, BLOCK_SIZE - byteOffsetFirst);
+				 writeFromDataBufferToBlockDevice(fileBuffer,&bd_fuse);
+				 writtenBytes += BLOCK_SIZE - byteOffsetFirst;
+				 byteOffsetFirst = 0;
+				 fileBuffer->currentDataPointer = nextDataPointer(fileBuffer,fileBuffer->currentDataPointer);
+				 fileBuffer->relativeDataBlockNumber += 1;
+				 readFromFileBuffer(fileBuffer,&bd_fuse);
+			 } else {
+				 memcpy(fileBuffer->dataBlockBuffer + byteOffsetFirst, buf + writtenBytes,  size - writtenBytes);
+				 writtenBytes += size;
+				 writeFromDataBufferToBlockDevice(fileBuffer,&bd_fuse);
+			 }
+    }
+	 if(nextDataPointer(fileBuffer,fileBuffer->currentDataPointer) != 0xFFFFFFFF) {			//Prepare next Requested block,if this is not the end of the file
+	 fileBuffer->currentDataPointer = nextDataPointer(fileBuffer,fileBuffer->currentDataPointer);
+	 fileBuffer->relativeDataBlockNumber += 1;
+	 readFromFileBuffer(fileBuffer,&bd_fuse);
+	 }
+	 //update  st_filesSize
+	 //update  st_blocks
+	 uint32_t lastPointer = getRequestedDataPointer(fileBuffer,fileBuffer->numDataPointers - 1);
+	 LOGF("LastPointer :%ld \n",lastPointer);
+	 uint32_t newFileSize = fileBuffer->numDataPointers * BLOCK_SIZE - unusedBytesInDataBlock(lastPointer);
+	 char inodeBlock[BLOCK_SIZE];
+	 readFromBuffer(INODE_START + fileBuffer->inodeNumber,inodeBlock,&bd_fuse);
+	 inode* node = (inode*)inodeBlock;
+	 node->st_blocks = fileBuffer->numDataPointers;
+	 node->st_size = newFileSize;
+	 writeToBuffer(INODE_START + fileBuffer->inodeNumber,inodeBlock,&bd_fuse);
+	 writeBufferToBlockDevice(&bd_fuse);	//Inode mit neuen Werten der Dateigröße und anzahl der benutzten DataBlöcke speichern.
+    RETURN(size);
 }
 
 int MyFS::fuseStatfs(const char *path, struct statvfs *statInfo) {
@@ -357,9 +453,6 @@ int MyFS::fuseTruncate(const char *path, off_t offset, struct fuse_file_info *fi
 int MyFS::fuseCreate(const char *path, mode_t mode, struct fuse_file_info *fileInfo) {
     LOGM();
     
-    
-    // TODO: Implement this!
-    
     RETURN(0);
 }
 
@@ -388,9 +481,6 @@ void* MyFS::fuseInit(struct fuse_conn_info *conn) {
         // you can get the containfer file name here:
         LOGF("Container file name: %s", ((MyFsInfo *) fuse_get_context()->private_data)->contFile);
         
-        
-        // TODO: Implement your initialization methods here!
-        
         bd_fuse.open(((MyFsInfo *) fuse_get_context()->private_data)->contFile);
         
     }
@@ -416,8 +506,12 @@ int MyFS::fuseGetxattr(const char *path, const char *name, char *value, size_t s
     return 0;
 }
         
-// TODO: Add your own additional methods here!
+//---------------Methoden die nur für mount.myfs benötigt werden---------------//
 
+/* List aus dem SuperBlock die Anzahl der vorhandenden Dateien im BlockDevice
+ *
+ * @return - Anzahl der Dateien im BlockDevice.
+ */
 int MyFS::getNumbOfFiles() {
     char superblock[BLOCK_SIZE] = {0};
     bd_fuse.read(SUPER_BLOCK_START, superblock);
@@ -425,6 +519,11 @@ int MyFS::getNumbOfFiles() {
     return sb->numbFiles;
 }
 
+/* Schreibt alle vorhandenen Inodes in das inodes-Array.
+ *
+ * @param numbOfFiles - Anzahl der zu lesenden Inodes.
+ * @param inodes - Array in dem die Inodes gespeichert werden.
+ */
 void MyFS::getInodesOfFiles(int numbOfFiles, inode* inodes) {
     char iMap[BLOCK_SIZE] = {0};
     char buffer[BLOCK_SIZE] = {0};
@@ -447,15 +546,24 @@ void MyFS::getInodesOfFiles(int numbOfFiles, inode* inodes) {
         }
     }
 }
-    
-u_int32_t MyFS::getRequestedDataPointer(FileHandleBuffer* fib,u_int32_t dataBlockNr) {
+
+/* Gibt den gesuchten DataPointer zurück der auf dataBlockNr zeigt.
+ * Beispiel für fuseRead: aktuelle Pointer im fhb zeigt auf Block 12.
+ * fuseRead() will aber ab Block 09 lesen. Dann wird der StartPointer der Datei genommen,
+ * und der Pointer auf Block 09 zeigt wird aus der Table geholt.
+ *
+ * @param fhb - fileBuffer der start Informationen über die geöffnete Datei beinhaltet.
+ * @param dataBlockNr - Datablock aus dem gelesen werden soll.
+ * @return - Pointer der auf dataBlockNr zeigt
+ */
+u_int32_t MyFS::getRequestedDataPointer(FileHandleBuffer* fhb, u_int32_t dataBlockNr) {
     u_int32_t counter = 0;
-    uint32_t startPointer = fib->startDataPointer;
+    uint32_t startPointer = fhb->startDataPointer;
     u_int32_t blockOffset = startPointer / (BLOCK_SIZE /POINTER_SIZE);
     u_int32_t pointerOffset = startPointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
-    fat* s_fat = (fat*) fib->fatBuffer;
+    fat* s_fat = (fat*) fhb->fatBuffer;
     while(counter < dataBlockNr) {
-        readFromFatBuffer(fib,blockOffset, &bd_fuse);
+        readFromFatBuffer(fhb,blockOffset, &bd_fuse);
         startPointer = s_fat->table[pointerOffset];
         blockOffset = startPointer / (BLOCK_SIZE / POINTER_SIZE);
         pointerOffset = startPointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
@@ -464,32 +572,76 @@ u_int32_t MyFS::getRequestedDataPointer(FileHandleBuffer* fib,u_int32_t dataBloc
     return startPointer;
 }
 
-u_int32_t MyFS::nextDataPointer(FileHandleBuffer* fib, u_int32_t dataPointer) {
+/* Gibt den Wert des nächsten Pointers zurück.
+ *
+ * @param fhb - fileHanleBuffer der geöffneten Datei.
+ * @param dataPointer - Pointer bei dem der nächste Eintrag zurückgegeben werden soll.
+ * @return - Wert des nächten Pointers.
+ */
+u_int32_t MyFS::nextDataPointer(FileHandleBuffer* fhb, u_int32_t dataPointer) {
     u_int32_t blockOffset = dataPointer / (BLOCK_SIZE / POINTER_SIZE);
     u_int32_t pointerOffset = dataPointer - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
-    fat* s_fat = (fat*) fib->fatBuffer;
-    readFromFatBuffer(fib,blockOffset,&bd_fuse);
+    fat* s_fat = (fat*) fhb->fatBuffer;
+    readFromFatBuffer(fhb,blockOffset,&bd_fuse);
     return s_fat->table[pointerOffset];
 }
 
-int MyFS::readFromFileBuffer(FileHandleBuffer* fib, BlockDevice* bd) {
-		if(fib->currentDataPointer + DATA_START == fib->absoluteDataBlockNumber) {	//is Block already loaded?
+/* Verringert den Wert der vorhandenen Dateien im Filesystem um 1.
+ *
+ * @param bd - BlockDevice in dem der Wert erhöht werden soll.
+ */
+void MyFS::superBlockNumFilesDecrease(BlockDevice* bd) {
+    char buffer[BLOCK_SIZE] = {0};
+    bd->read(SUPER_BLOCK_START, buffer);
+    super_block* sb = (super_block*) buffer;
+    sb->numbFiles--;
+    bd->write(SUPER_BLOCK_START, buffer);
+}
+
+/* Liest aus dem dataBuffer des FileHandleBuffers. Wenn nicht der richtige Block sich im dataBuffer befindet,
+ * wird aus dem BlockDeviceder richtige in den dataBuffer geladen.
+ *
+ * @param fhb - beinhaltet den dataBlockBuffer.
+ * @param bd - BlockDevice aus dem gelesen werden soll.
+ */
+int MyFS::readFromFileBuffer(FileHandleBuffer* fhb, BlockDevice* bd) {
+		if(fhb->currentDataPointer + DATA_START == fhb->absoluteDataBlockNumber) {	//is Block already loaded?
 			return 0;
 		}
-		bd->read(DATA_START+fib->currentDataPointer,fib->dataBlockBuffer);		//get the Block and update absoluteBlockNumber.
-		fib->absoluteDataBlockNumber = fib->currentDataPointer + DATA_START;
+		bd->read(DATA_START+fhb->currentDataPointer,fhb->dataBlockBuffer);		//get the Block and update absoluteBlockNumber.
+		fhb->absoluteDataBlockNumber = fhb->currentDataPointer + DATA_START;
 		return 0;
 }
-int MyFS::readFromFatBuffer(FileHandleBuffer* fib, uint32_t fatBlockOffset, BlockDevice* bd) {
 
-    if (fib->fatBlockNumber == fatBlockOffset) {
+/* Schreibt den aktuellen Block im DataBuffer der geöffneten Datei in das BlockDevice.
+ *
+ * @param fhb - fileHandleBuffer der geöffneten Datei.
+ * @param bd - BlockDevice in welches der DataBlock geschrieben werden soll.
+ */
+void MyFS::writeFromDataBufferToBlockDevice(FileHandleBuffer* fhb, BlockDevice* bd) {
+	bd->write(fhb->currentDataPointer + DATA_START,fhb->dataBlockBuffer);
+}
+
+/* Liest aus dem FatBuffer. Wenn nicht der richtige FatBlock im Buffer ist, wird aus dem BlockDevice der benötigte geladen und im Buffer gespeichert.
+ *
+ * @param fhb - fileHandleBuffer in dem der FatBuffer für die geöffnete Datei gespeichert ist.
+ * @param fatBlockOffset - Position des FatBlocks der gelesen werden soll.
+ * @param bd - BlockDevice aus dem die Fat-Blöcke gelesen werden.
+ */
+int MyFS::readFromFatBuffer(FileHandleBuffer* fhb, uint32_t fatBlockOffset, BlockDevice* bd) {
+    if (fhb->fatBlockNumber == fatBlockOffset) {
         return 0;
     }
-    bd->read(FAT_START + fatBlockOffset, fib->fatBuffer);
-    fib->fatBlockNumber = fatBlockOffset;
+    bd->read(FAT_START + fatBlockOffset, fhb->fatBuffer);
+    fhb->fatBlockNumber = fatBlockOffset;
     return 0;
 }
 
+/* Schreibt alle benutzten DataPointer einer Datei in ein Array.
+ *
+ * @param dataPointerArray - Array in dem alle benutzten DataPointer gespeicher werden.
+ * @param sizeOfArray - Anzahl der zu speichernden Pointer.
+ */
 void MyFS::getAllUsedDataPointers(uint32_t* dataPointerArray, uint32_t sizeOfArray) {
     char table[BLOCK_SIZE] = {0};
     fat* s_fat = (fat*) table;
@@ -501,26 +653,13 @@ void MyFS::getAllUsedDataPointers(uint32_t* dataPointerArray, uint32_t sizeOfArr
 		dataPointerArray[i + 1] = s_fat->table[pointerOffset];
 		blockOffset = dataPointerArray[i + 1] / (BLOCK_SIZE /POINTER_SIZE);
 		pointerOffset = dataPointerArray[i + 1] - blockOffset * (BLOCK_SIZE / POINTER_SIZE);
-
-	/*	if(blockOffset != dataPointerArray[i] / (BLOCK_SIZE / POINTER_SIZE)) {
-		blockOffset = s_fat->table[dataPointerArray[i] / (BLOCK_SIZE / POINTER_SIZE)];
-		readFromBuffer(FAT_START + blockOffset, table, bd);
-		}
-		dataPointerArray[i+1] = s_fat->table[dataPointerArray[i]-blockOffset * (BLOCK_SIZE/POINTER_SIZE)];
-	*/}
+	}
 }
-
-/*Verringert den Wert der vorhandenen Dateien im Filesystem um 1.
- *@param bd - BlockDevice in dem der Wert erhöht werden soll.
-*/
-void MyFS::superBlockNumFilesDecrease(BlockDevice* bd) {
-    char buffer[BLOCK_SIZE] = {0};
-    bd->read(SUPER_BLOCK_START, buffer);
-    super_block* sb = (super_block*) buffer;
-    sb->numbFiles--;
-    bd->write(SUPER_BLOCK_START, buffer);
-}
-
+/* Setzt alle DMap Einträge Frei die im dataPointerArray sind.
+ *
+ * @param dataPointerArray - Array mit allen besetzten Data-Pointern die freigesetzt werden sollen.
+ * @param sizeOfArray - Anzahl der Einträge die Freigesetzt werden sollen.
+ */
 void MyFS::deleteDMapEntries(uint32_t* dataPointerArray, uint32_t sizeOfArray) {
     char dataDMap[BLOCK_SIZE] = {0};
     u_int8_t bitMask;
@@ -531,7 +670,7 @@ void MyFS::deleteDMapEntries(uint32_t* dataPointerArray, uint32_t sizeOfArray) {
     for(uint32_t i = 0; i < sizeOfArray;i++) {
     	if(blockOffset != dataPointerArray[i] / (BLOCK_SIZE * 8)) {
     		blockOffset = dataPointerArray[i] / (BLOCK_SIZE * 8);
-    		writeToBufferToBlockDevice(&bd_fuse);
+    		writeBufferToBlockDevice(&bd_fuse);
     		readFromBuffer(DATA_MAP_START + blockOffset,dataDMap,&bd_fuse);
     	}
     	byteOffset = (dataPointerArray[i] - (blockOffset * BLOCK_SIZE * 8)) / 8;
@@ -542,24 +681,167 @@ void MyFS::deleteDMapEntries(uint32_t* dataPointerArray, uint32_t sizeOfArray) {
     	dataDMap[byteOffset] &= bitMask;
     	writeToBuffer(DATA_MAP_START + blockOffset,dataDMap,&bd_fuse);
     }
-    writeToBufferToBlockDevice(&bd_fuse);
+    writeBufferToBlockDevice(&bd_fuse);
 }
-//---------------------------------------------------------------------------------------
-    
-    
-/* Stellt die größe der Blöcke im BlockDevice auf BLOCK_SIZE
- * und füllt alle Blöcke mit Nullen.
+
+/* Gibt die Anzahl der nicht benutzen Bytes in einem Block zurück.
+ * Wird benötigt für fuseWrite(), um die neue Dateigröße genau zu bestimmen.
  *
- * @param bd - BlockDevice was mit Nullen gefüllt wird
-*/
-void MyFS::initBlockDevice(BlockDevice* bd) {
-    char buffer[BLOCK_SIZE] = {0};
-    bd->resize(BLOCK_SIZE);
-    for(int i = 0; i < NUMB_OF_BLOCKS; i++) {
-        bd->write(i, buffer);
-    }
+ * @param dataPointer - Letzter geschriebener Block.
+ * @return - Anzahl nicht benutzer Bytes im Block.
+ */
+uint32_t MyFS::unusedBytesInDataBlock(uint32_t dataPointer) {
+	uint32_t emptyBytes = 0;
+	uint32_t counter = BLOCK_SIZE - 1;
+	char dataBlock[BLOCK_SIZE];
+
+	readFromBuffer(DATA_START + dataPointer,dataBlock,&bd_fuse);
+	while(dataBlock[counter] == 0) {
+		emptyBytes++;
+		counter--;
+	}
+	return emptyBytes;
 }
-    
+
+/* Schreibt zu einer existierenden Datei im BlockDevice zusätzliche neue Einträge in die FAT.
+ * Wird aufgerufen wenn z.b eine Datei in das BlockDevice kopiert wird bzw. größer wird.
+ * Der alte letzte Pointer zeigt nicht mehr auf 0xFFFFFFFF(Dateiende) sondern auf den neuen ersten Eintrag im Pointer-Array.
+ * Der letzte Eintrag im Pointer-Array wird zum neuen Dateiende.
+ *
+ * @param bd - BlockDevice in dem die FAT-Einträge reinkommen.
+ * @param lastPointer - Der letzte Pointer vor dem vergrößern der Datei.
+ * @param pointers - Array mit den neuen benötigten DataPointers.
+ * @param sizeOfArray - Anzahl der neuen DataPointers.
+ */
+void MyFS::writeAdditionalFatEntries(BlockDevice *bd, uint32_t lastPointer, u_int32_t *pointers, u_int32_t sizeOfArray) {
+    char table[BLOCK_SIZE] = {0};
+    fat* s_fat = (fat*) table;
+    u_int32_t blockOffset = lastPointer / (BLOCK_SIZE / POINTER_SIZE);
+    readFromBuffer(FAT_START + blockOffset, table, bd);
+    s_fat->table[lastPointer - blockOffset * (BLOCK_SIZE/POINTER_SIZE)] = pointers[0];		//Last Block now refers to the new pointer in pointers[0]
+    writeToBuffer(FAT_START + blockOffset, table, bd);
+    writeBufferToBlockDevice(bd);
+    blockOffset = pointers[0] / (BLOCK_SIZE / POINTER_SIZE);
+    readFromBuffer(FAT_START + blockOffset, table, bd);
+    for (u_int32_t entries = 0; entries < sizeOfArray - 1; entries++) {
+        if (blockOffset != pointers[entries] / (BLOCK_SIZE / POINTER_SIZE)) {
+            writeToBuffer(FAT_START + blockOffset, table, bd);
+            writeBufferToBlockDevice(bd);
+            blockOffset = pointers[entries] / (BLOCK_SIZE / POINTER_SIZE);
+            readFromBuffer(FAT_START + blockOffset, table, bd);
+        }
+        s_fat->table[pointers[entries] - blockOffset * (BLOCK_SIZE / POINTER_SIZE)] = pointers[entries + 1];
+    }
+    blockOffset = pointers[sizeOfArray - 1] / (BLOCK_SIZE / POINTER_SIZE);
+    s_fat->table[pointers[sizeOfArray - 1] - blockOffset * (BLOCK_SIZE / POINTER_SIZE)] = 0xFFFFFFFF;
+    writeToBuffer(FAT_START + blockOffset, table, bd);
+    writeBufferToBlockDevice(bd);
+}
+
+/* Estellt eine neue Inode für eine neue Datei im BlockDevice.
+ * TODO:: Es ist noch nicht ganz klar wie auf Dateiinformationen von einer exisitierenden Datei die in das BlockDevice kopiert werden soll
+ * zugegriffen werden kann, falls man das überhaupt machen soll.
+ *
+ * @param bd - BlockDevice in dem die Inode erstellt wird.
+ * @param path - Dateiname der neuen Datei.
+ * @param dataPointer - Erster DataPointer der Datei.
+ * @param inodePointer - iNodePointer der auf die Stelle im BlockDevice zeigt in dem die Inode erstellt wird.
+ */
+void MyFS::createNewInode(BlockDevice* bd, const char* path, u_int32_t dataPointer, u_int32_t iNodePointer) {
+    char structure[BLOCK_SIZE] = {0};
+    inode* node = (inode*) structure;
+
+    strncpy(node->file_name, path, sizeof(node->file_name));/* File name */
+    node->st_size = 0;										/* total size, in bytes */
+    node->user_id = getuid();								/* user ID of owner */
+    node->grp_id = getgid();								/* group ID of owner */
+    node->protection = (S_IFREG | 0777);                    /* protection */
+    node->atime = time(0);                                  /* time of last access */
+    node->ctime = time(0);                                  /* time of last status change */
+    node->mtime = time(0);                      	        /* time of last modification */
+    node->first_data_block = dataPointer;                   /* number of first file data-block */
+    node->st_blocks = 1;            						/* number of 512 byte blocks allocated */
+    bd->write(INODE_START + iNodePointer, (char*) node);
+    superBlockNumFilesIncrease(bd);
+}
+
+/* Trägt die DataPointers im pointers Array in die FAT ein.
+ * Die aktuellen FAT-Einträge werden zuerst in einem Char array "table" geladen um bereits vorhandene Einträge zu
+ * behalten. (Es können
+ * keine einzelnen Einträge geschrieben werden, sondern immer nur ein ganzer FATBlock.)
+ * Es werden alle DataPointers, die in das geladene Block müssen, in den Buffer reingeschrieben. Sind DataPointers
+ * vorhanden im DataPointer Array, die in einen
+ * anderen FAT-Block reingeschrieben werden müssen, so wird der Buffer mit allen Änderungen in das BlockDevice
+ * geschrieben und der benötigte Block wird in den
+ * Buffer geladen. Der letzte Eintrag im DataPointer Array wird an der Stelle im FAT mit 0xFFFF FFFF
+ * eingetragen(Dateiende).
+ *
+ * In einem FATBlock sind BLOCK_SIZE/POINTER_SIZE Einträge drin.
+ * Ein Eintrag im FAT bedeutet, dass die Datei mehrere DatenBlöcke hat aus denen gelesen werden muss, oder dass das
+ * Dateiende erreicht wurde(0xFFFF FFFF).
+ * Beispiel: An der Stelle 18 steht im FAT der Wert 21. Das heißt, im DataBlock 21 ist der nächste Teil der Datei
+ * geschrieben.
+ * außerdem heißt das auch, das an der Stelle 21 im FAT der Eintrag geprüft werden muss. Ist im Eintrag 21 im FAT
+ * der Wert 0xFFFF FFFF
+ * drin, so bedeutet dies dass das Dateiende erreicht wurde. Sollte eine andere Zahl wie 0xFFFF FFFF drin stehen,
+ * bedeutet das die Datei
+ * noch größer ist und weiter geguckt werden muss.
+ *
+ * @param bd - BlockDevice in das geschrieben wird.
+ * @param pointers - Das Array welches alle benötigten DataPointers enthält.
+ * @param sizeOfArray - Anzahl der Einträge im pointers Array.
+*/
+void MyFS::writeFatEntries(BlockDevice *bd, u_int32_t *pointers, u_int32_t sizeOfArray) {
+    char table[BLOCK_SIZE] = {0};
+    fat* s_fat = (fat*) table;
+    u_int32_t blockOffset = pointers[0] / (BLOCK_SIZE / POINTER_SIZE);
+    readFromBuffer(FAT_START + blockOffset, table, bd);
+
+    for (u_int32_t entries = 0; entries < sizeOfArray - 1; entries++) {
+        if (blockOffset != pointers[entries] / (BLOCK_SIZE / POINTER_SIZE)) {
+            writeToBuffer(FAT_START + blockOffset, table, bd);
+            writeBufferToBlockDevice(bd);
+            blockOffset = pointers[entries] / (BLOCK_SIZE / POINTER_SIZE);
+            readFromBuffer(FAT_START + blockOffset, table, bd);
+        }
+        s_fat->table[pointers[entries] - blockOffset * (BLOCK_SIZE / POINTER_SIZE)] = pointers[entries + 1];
+    }
+    blockOffset = pointers[sizeOfArray - 1] / (BLOCK_SIZE / POINTER_SIZE);
+    s_fat->table[pointers[sizeOfArray - 1] - blockOffset * (BLOCK_SIZE / POINTER_SIZE)] = 0xFFFFFFFF;
+    writeToBuffer(FAT_START + blockOffset, table, bd);
+    writeBufferToBlockDevice(bd);
+}
+
+//---------------Methoden die für mount.myfs und mkfs.myfs benötigt werden---------------//
+
+/* Geht durch die IMap und sucht nach einer freien Stelle.
+ * Wurde eine freie Stelle gefunden (0 = freie Stelle) so wird diese belegt
+ * (1 = belegt) und der neue Eintrag wird in das BlockDevice geschrieben.
+ * Die Stelle an der die neue Inode geschrieben weden soll, wird als Wert zurückgegeben.
+ *
+ * @param bd - BlockDevice in dem eine leere Inode gesucht wird.
+ * @return - InodeBlock der Leer ist.(Wenn kein freier Platzt vorhanden ist, wird 0xFFFF FFFF zurückgegeben.)
+*/
+u_int32_t MyFS::getFreeInodePointer(BlockDevice *bd) {
+    char dataIMap[BLOCK_SIZE] = {0};
+    u_int8_t bitMask;
+    bd->read(INDOE_MAP_START, dataIMap);
+
+    for (int byte = 0; byte < NUM_DIR_ENTRIES / 8; byte++) {
+        bitMask = 0x80;
+
+        for (int bit = 0; bit < 8; bit++) {
+            if ((dataIMap[byte] & bitMask) == 0) {
+                dataIMap[byte] |= bitMask;
+                bd->write(INDOE_MAP_START, dataIMap);
+                return bit + byte * 8;
+            }
+            bitMask >>= 1;
+        }
+    }
+    return ~0;
+}
+
 /* Liest die Daten aus dem Buffer und schreibt diese in das übergebene char Array.
  * Sollen Daten aus einen Block gelesen werden der nicht im Buffer ist, so werden
  * diese vom BlockDevice in den Buffer geschreiben.
@@ -614,9 +896,93 @@ int MyFS::writeToBuffer(u_int32_t position, char* data, BlockDevice* bd) {
  * @param bd - BlockDevice in dem geschrieben wird.
  * @return - Immer 0.
 */
-int MyFS::writeToBufferToBlockDevice(BlockDevice* bd) {
+int MyFS::writeBufferToBlockDevice(BlockDevice* bd) {
     bd->write(bdBuffer.blockNumber, bdBuffer.blockContent);
     return 0;
+}
+
+/* Sucht in der DMap freie Plätze und schreibt deren PointerWert in das Pointer Array.
+ * Um möglichst viele Einträge gleichzeitig im BlockDevice zu ändern, wird in ein Buffer geschrieben.
+ * Muss im nächsten DMap-Block gesucht werden, so werden alle Änderungen in das BlockDevice geschrieben und
+ * der DMap-Block in dem weiter gesucht werden muss wird geladen.
+ * Sobald das Array voll ist (counter == sizeOfArray) werden die letzten Änderungen in das BlockDevice geschrieben
+ * und 0 wird zurückGegeben.
+ *
+ * @param bd - BlockDevice, aus dem gelesen und geschrieben wird.
+ * @param pointerArray - Das Array welches ausgefüllt werden soll mit DataPointers.
+ * @param sizeOfArray - Die Anzahl der DataPointer im Array die gespeichert werden sollen.
+ * @return - 0 bei erfolgreichen füllen, return < 0 wenn nicht genügend DataBlocks vorhanden sind(Sollte !NIEMALS!
+ * passieren, da vorher schon
+ * geprüft wurde ob überhaupt genug DataBlocks vorhanden sind. Wenn es trotzdem dazu kommt, werden die neuen Einträge
+ * nicht rückgängig gemacht
+ * und es werden DataBlocks als besetzt markiert, die niemanden gehören.
+*/
+u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray) {
+    char dataDMap[BLOCK_SIZE] = {0};
+    u_int8_t bitMask;
+    u_int32_t counter = 0;
+
+    for (u_int32_t blockNumber = 0; blockNumber < NUMB_OF_DATA_MAP_BLOCKS; blockNumber++) {
+        bd->read(DATA_MAP_START + blockNumber, dataDMap);
+
+        for (int byte = 0; byte < BLOCK_SIZE; byte++) {
+            bitMask = 0x80;
+            for (int offSet = 0; offSet < 8; offSet++) {
+                if ((dataDMap[byte] & bitMask) == 0) {
+                    dataDMap[byte] |= bitMask;
+                    writeToBuffer(DATA_MAP_START + blockNumber, dataDMap, bd);
+                    pointerArray[counter] = offSet + byte * 8 + blockNumber * BLOCK_SIZE * 8;
+                    counter++;
+                    if (counter == sizeOfArray) {
+                        writeBufferToBlockDevice(bd);
+                        return 0;
+                    }
+                }
+                bitMask >>= 1;
+            }
+        }
+    }
+    return -(EFBIG);
+}
+
+/* Gibt die Anzahl der benötigten Blöcke zurück.
+ *
+ * @param i - Größe der Datei in Byte.
+ * @return - Anzahl der Blöcke.
+*/
+u_int32_t MyFS::getMaxBlocksNeeded(u_int32_t i) {
+    if (i % BLOCK_SIZE != 0) {
+        return (i / BLOCK_SIZE) + 1;
+    } else if (i == 0) {
+        return 1;
+    }
+    return (i / BLOCK_SIZE);
+}
+
+/*Erhöht den Wert der vorhandenen Dateien im Filesystem um 1.
+ *@param bd - BlockDevice in dem der Wert erhöht werden soll.
+*/
+void MyFS::superBlockNumFilesIncrease(BlockDevice* bd) {
+    char buffer[BLOCK_SIZE] = {0};
+    bd->read(SUPER_BLOCK_START, buffer);
+    super_block* sb = (super_block*) buffer;
+    sb->numbFiles++;
+    bd->write(SUPER_BLOCK_START, buffer);
+}
+
+//---------------Methoden die nur für mkfs.myfs benötigt werden---------------//
+
+/* Stellt die größe der Blöcke im BlockDevice auf BLOCK_SIZE
+ * und füllt alle Blöcke mit Nullen.
+ *
+ * @param bd - BlockDevice was mit Nullen gefüllt wird
+*/
+void MyFS::initBlockDevice(BlockDevice* bd) {
+    char buffer[BLOCK_SIZE] = {0};
+    bd->resize(BLOCK_SIZE);
+    for(int i = 0; i < NUMB_OF_BLOCKS; i++) {
+        bd->write(i, buffer);
+    }
 }
     
 /* Erstellt ein SuperBlock im BlockDevice mit Informationen über das FileSystem.
@@ -638,6 +1004,7 @@ void MyFS::createSuperBlock(BlockDevice* bd) {
   
 /* Erstellt eine neue Inode und schreibt diese in das BlockDevice.
  * Die Metadaten werden von der übergebenen Datei übernommen.(Bis auf access-Time, creation-Time, usedId und grpId)
+ * Diese Methode wird nur für mkfs.myfs aufgerufen. Siehe createNewInode() für die mount.myfs Methode.
  *
  * @param bd - BlockDevice in dem die Inode geschrieben wird.
  * @param path - Datei von dem die Metadaten übernommen werden.
@@ -645,7 +1012,7 @@ void MyFS::createSuperBlock(BlockDevice* bd) {
  * @param iNodePointer - Position in welchen InodeBlock die Inode geschrieben werden soll.
  * @return - immer 0
 */
-int MyFS::createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer, u_int32_t iNodePointer) {
+void MyFS::createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer, u_int32_t iNodePointer) {
     char structure[BLOCK_SIZE] = {0};
     struct stat data;
     stat(path, &data);
@@ -662,9 +1029,8 @@ int MyFS::createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer, u
     node->first_data_block = dataPointer;                           /* number of first file data-block */
     node->st_blocks = getMaxBlocksNeeded(data.st_size);             /* number of 512 byte blocks allocated */
     bd->write(INODE_START + iNodePointer, (char*) node);
-    return 0;
 }
-    
+
 /* Prüft nach ob eine Dateiname bereits in einem der Inodes im BlockDevice vorhanden ist.
  * Es werden zuerst in der IMap nach belegten Inodes gesucht. Wird ein belegter Platz gefunden, so wird
  * der Dateiname in der Inode mit dem übergebenen Namen verglichen.
@@ -696,37 +1062,9 @@ int MyFS::checkFileExist(BlockDevice* bd,const char* path) {
     }
     return -(ENOENT);
 }
-    
-/* Geht durch die IMap und sucht nach einer freien Stelle.
- * Wurde eine freie Stelle gefunden (0 = freie Stelle) so wird diese belegt
- * (1 = belegt) und der neue Eintrag wird in das BlockDevice geschrieben.
- * Die Stelle an der die neue Inode geschrieben weden soll, wird als Wert zurückgegeben.
- *
- * @param bd - BlockDevice in dem eine leere Inode gesucht wird.
- * @return - InodeBlock der Leer ist.(Wenn kein freier Platzt vorhanden ist, wird 0xFFFF FFFF zurückgegeben.)
-*/
-u_int32_t MyFS::getFreeInodePointer(BlockDevice *bd) {
-    char dataIMap[BLOCK_SIZE] = {0};
-    u_int8_t bitMask;
-    bd->read(INDOE_MAP_START, dataIMap);
-        
-    for (int byte = 0; byte < NUM_DIR_ENTRIES / 8; byte++) {
-        bitMask = 0x80;
-            
-        for (int bit = 0; bit < 8; bit++) {
-            if ((dataIMap[byte] & bitMask) == 0) {
-                dataIMap[byte] |= bitMask;
-                bd->write(INDOE_MAP_START, dataIMap);
-                return bit + byte * 8;
-            }
-            bitMask >>= 1;
-        }
-    }
-    return ~0;
-}
 
 /* Prüft ob genug DataBlocks vorhanden sind für eine Datei.
- * Geht durch die DMap und zählt alle freien Blöcke bis genug freie Blöcke gezählt worden
+ * Die Methode geht durch die DMap und zählt alle freien Blöcke bis genug freie Blöcke gezählt worden
  * sind um die Datei reinzuschreiben.
  *
  * @param bd - Das BlockDevice indem geprüft werden soll.
@@ -756,124 +1094,6 @@ int MyFS::checkFreeDataSize(BlockDevice* bd, u_int32_t size) {
         }
     }
     return -(EFBIG);
-}
-
-/* Sucht in der DMap freie Plätze und schreibt deren PointerWert in das Pointer Array.
- * Um möglichst viele Einträge gleichzeitig im BlockDevice zu ändern, wird in ein Buffer geschrieben.
- * Muss im nächsten DMap-Block gesucht werden, so werden alle Änderungen in das BlockDevice geschrieben und
- * der DMap-Block in dem weiter gesucht werden muss wird geladen.
- * Sobald das Array voll ist (counter == sizeOfArray) werden die letzten Änderungen in das BlockDevice geschrieben
- * und 0 wird zurückGegeben.
- *
- * @param bd - BlockDevice, aus dem gelesen und geschrieben wird.
- * @param pointerArray - Das Array welches ausgefüllt werden soll mit DataPointers.
- * @param sizeOfArray - Die Anzahl der DataPointer im Array die gespeichert werden sollen.
- * @return - 0 bei erfolgreichen füllen, return < 0 wenn nicht genügend DataBlocks vorhanden sind(Sollte !NIEMALS!
- * passieren, da vorher schon
- * geprüft wurde ob überhaupt genug DataBlocks vorhanden sind. Wenn es trotzdem dazu kommt, werden die neuen Einträge
- * nicht rückgängig gemacht
- * und es werden DataBlocks als besetzt markiert, die niemanden gehören.
-*/
-u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray) {
-    char dataDMap[BLOCK_SIZE] = {0};
-    u_int8_t bitMask;
-    u_int32_t counter = 0;
-    
-    for (u_int32_t blockNumber = 0; blockNumber < NUMB_OF_DATA_MAP_BLOCKS; blockNumber++) {
-        bd->read(DATA_MAP_START + blockNumber, dataDMap);
-        
-        for (int byte = 0; byte < BLOCK_SIZE; byte++) {
-            bitMask = 0x80;
-            for (int offSet = 0; offSet < 8; offSet++) {
-                if ((dataDMap[byte] & bitMask) == 0) {
-                    dataDMap[byte] |= bitMask;
-                    writeToBuffer(DATA_MAP_START + blockNumber, dataDMap, bd);
-                    pointerArray[counter] = offSet + byte * 8 + blockNumber * BLOCK_SIZE * 8;
-                    counter++;
-                    if (counter == sizeOfArray) {
-                        writeToBufferToBlockDevice(bd);
-                        return 0;
-                    }
-                }
-                bitMask >>= 1;
-            }
-        }
-    }
-    return -(ENOSPC);
-}
-
-
-/* Gibt die Anzahl der benötigten Blöcke zurück.
- *
- * @param i - Größe der Datei in Byte.
- * @return - Anzahl der Blöcke.
-*/
-u_int32_t MyFS::getMaxBlocksNeeded(u_int32_t i) {
-    if (i % BLOCK_SIZE != 0) {
-        return (i / BLOCK_SIZE) + 1;
-    } else if (i == 0) {
-        return 1;
-    }
-    return (i / BLOCK_SIZE);
-}
-    
-/* Trägt die DataPointers in die FAT ein.
- * Die DataPointers geben die Position im FAT an, indem die Einträge gespeichert werden sollen.
- * Die aktuellen FAT-Einträge werden zuerst in einem Char array "table" geladen um bereits vorhandene Einträge zu
- * behalten. (Es können
- * keine einzelnen Einträge geschrieben werden, sondern immer nur ein ganzer FATBlock.)
- * Es werden alle DataPointers, die in das geladene Block müssen, in den Buffer reingeschrieben. Sind DataPointers
- * vorhanden im DataPointer Array, die in einen
- * anderen FAT-Block reingeschrieben werden müssen, so wird der Buffer mit allen Änderungen in das BlockDevice
- * geschrieben und der benötigte Block wird in den
- * Buffer geladen. Der letzte Eintrag im DataPointer Array wird an der Stelle im FAT mit 0xFFFF FFFF
- * eingetragen(Dateiende).
- *
- * In einem FATBlock sind BLOCK_SIZE/POINTER_SIZE Einträge drin.
- * Ein Eintrag im FAT bedeutet, dass die Datei mehrere DatenBlöcke hat aus denen gelesen werden muss, oder dass das
- * Dateiende erreicht wurde(0xFFFF FFFF).
- * Beispiel: An der Stelle 18 steht im FAT der Wert 21. Das heißt, im DataBlock 21 ist der nächste Teil der Datei
- * geschrieben.
- * außerdem heißt das auch, das an der Stelle 21 im FAT der Eintrag geprüft werden muss. Ist im Eintrag 21 im FAT
- * der Wert 0xFFFF FFFF
- * drin, so bedeutet dies dass das Dateiende erreicht wurde. Sollte eine andere Zahl wie 0xFFFF FFFF drin stehen,
- * bedeutet das die Datei
- * noch größer ist und weiter geguckt werden muss.
- *
- * @param bd - BlockDevice in das geschrieben wird.
- * @param pointers - Das Array welches alle benötigten DataPointers enthält.
- * @param sizeOfArray - Anzahl der Einträge im pointers Array.
-*/
-void MyFS::writeFatEntries(BlockDevice *bd, u_int32_t *pointers, u_int32_t sizeOfArray) {
-    char table[BLOCK_SIZE] = {0};
-    fat* s_fat = (fat*) table;
-    u_int32_t blockOffset = pointers[0] / (BLOCK_SIZE / POINTER_SIZE);
-    readFromBuffer(FAT_START + blockOffset, table, bd);
-    
-    for (u_int32_t entries = 0; entries < sizeOfArray - 1; entries++) {
-        if (blockOffset != pointers[entries] / (BLOCK_SIZE / POINTER_SIZE)) {
-            writeToBuffer(FAT_START + blockOffset, table, bd);
-            writeToBufferToBlockDevice(bd);
-            blockOffset = pointers[entries] / (BLOCK_SIZE / POINTER_SIZE);
-            readFromBuffer(FAT_START + blockOffset, table, bd);
-        }
-        s_fat->table[pointers[entries] - blockOffset * (BLOCK_SIZE / POINTER_SIZE)] = pointers[entries + 1];
-    }
-    blockOffset = pointers[sizeOfArray - 1] / (BLOCK_SIZE / POINTER_SIZE);
-    s_fat->table[pointers[sizeOfArray - 1] - blockOffset * (BLOCK_SIZE / POINTER_SIZE)] = 0xFFFFFFFF;
-    writeToBuffer(FAT_START + blockOffset, table, bd);
-    writeToBufferToBlockDevice(bd);
-}
-  
-/*Erhöht den Wert der vorhandenen Dateien im Filesystem um 1.
- *@param bd - BlockDevice in dem der Wert erhöht werden soll.
-*/
-void MyFS::superBlockNumFilesIncrease(BlockDevice* bd) {
-    char buffer[BLOCK_SIZE] = {0};
-    bd->read(SUPER_BLOCK_START, buffer);
-    super_block* sb = (super_block*) buffer;
-    sb->numbFiles++;
-    bd->write(SUPER_BLOCK_START, buffer);
 }
 
 /* Fügt eine Datei in das übergebene BlockDevice hinzu.
