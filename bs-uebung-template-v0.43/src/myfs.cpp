@@ -110,7 +110,7 @@ int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
     	RETURN(-ENOSPC);
     }
     u_int32_t dataPointers[1];
-    err = getFreeDataPointers(&bd_fuse, dataPointers,1);
+    err = getFreeDataPointers(&bd_fuse, dataPointers,1,0);
     if(err) {
     	//TODO: Free the taken DataPointer or else it will be lost forever
     	RETURN(-EFBIG);
@@ -306,13 +306,18 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
     		int err;
     		uint32_t amountOfPointersNeeded = blockOffsetLast - fileBuffer->numDataPointers;
     		uint32_t newNeededPointers[amountOfPointersNeeded];
-    		err = getFreeDataPointers(&bd_fuse,newNeededPointers,amountOfPointersNeeded);
+    		err = getFreeDataPointers(&bd_fuse,newNeededPointers,amountOfPointersNeeded,fileBuffer->positionOfLastFoundPointer);
     		//TODO: Wir sollten uns merken wo wir den letzten freien DataPointer gefunden haben, sonst quadratische laufzeit.
     		if(err) {
     			//TODO: Alle Pointer freigeben die in anspruch genommen worden sind, wenn Datei zu groß ist!.
     			RETURN(EFBIG);
     		}
-    		uint32_t lastPointer = getRequestedDataPointer(fileBuffer,fileBuffer->numDataPointers - 1); //Suche letzten Pointer bevor datei vergrößert wurde
+    		uint32_t lastPointer;
+    		if(fileBuffer->positionOfLastFoundPointer == 0) {
+    			lastPointer = getRequestedDataPointer(fileBuffer,fileBuffer->numDataPointers - 1);
+    		}else {
+    			lastPointer = fileBuffer->positionOfLastFoundPointer;
+    		}																							 //Suche letzten Pointer bevor datei vergrößert wurde
     		fileBuffer->numDataPointers += amountOfPointersNeeded;										//Erhöhe Anzahl der DataPointers der Datei.
     		writeAdditionalFatEntries(&bd_fuse,lastPointer,newNeededPointers,amountOfPointersNeeded);	//Neue Pointer Eintragen in BlockDevice
     		uint32_t fatBlockOffset = fileBuffer->startDataPointer / (BLOCK_SIZE/POINTER_SIZE);
@@ -323,6 +328,7 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
     		}
     		char emptyBlock[BLOCK_SIZE] = {0};
     		bd_fuse.write(DATA_START + lastPointer,emptyBlock);
+    		fileBuffer->positionOfLastFoundPointer = lastPointer;
 
 
      }
@@ -351,9 +357,7 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
 				 writeFromDataBufferToBlockDevice(fileBuffer,&bd_fuse);
 			 }
     }
-	uint32_t lastPointer = getRequestedDataPointer(fileBuffer,fileBuffer->numDataPointers - 1);
-	LOGF("LastPointer :%ld \n",lastPointer);
-	uint32_t newFileSize = fileBuffer->numDataPointers * BLOCK_SIZE - unusedBytesInDataBlock(lastPointer);
+	uint32_t newFileSize = fileBuffer->numDataPointers * BLOCK_SIZE - unusedBytesInDataBlock(fileBuffer->positionOfLastFoundPointer);
 	char inodeBlock[BLOCK_SIZE];
 	readFromBuffer(INODE_START + fileBuffer->inodeNumber,inodeBlock,&bd_fuse);
 	inode* node = (inode*)inodeBlock;
@@ -921,12 +925,12 @@ int MyFS::writeBufferToBlockDevice(BlockDevice* bd) {
  * nicht rückgängig gemacht
  * und es werden DataBlocks als besetzt markiert, die niemanden gehören.
 */
-u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray) {
+u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray,uint32_t searchStartPosition) {
     char dataDMap[BLOCK_SIZE] = {0};
     u_int8_t bitMask;
     u_int32_t counter = 0;
-
-    for (u_int32_t blockNumber = 0; blockNumber < NUMB_OF_DATA_MAP_BLOCKS; blockNumber++) {
+    uint32_t blockOffset = searchStartPosition / (BLOCK_SIZE * 8);
+    for (u_int32_t blockNumber = blockOffset; blockNumber < NUMB_OF_DATA_MAP_BLOCKS; blockNumber++) {
         bd->read(DATA_MAP_START + blockNumber, dataDMap);
 
         for (int byte = 0; byte < BLOCK_SIZE; byte++) {
@@ -1140,7 +1144,7 @@ int MyFS::addFile(BlockDevice* bd, char* path) {
     u_int32_t dataPointers[blocksToWrite];
     u_int32_t sizeOfArray = sizeof(dataPointers) / sizeof(dataPointers[0]);
     
-    getFreeDataPointers(bd, dataPointers, sizeOfArray);
+    getFreeDataPointers(bd, dataPointers, sizeOfArray,0);
     createInodeBlock(bd, path, dataPointers[0], iNodePointer);
     writeFatEntries(bd, dataPointers, sizeOfArray);
     
