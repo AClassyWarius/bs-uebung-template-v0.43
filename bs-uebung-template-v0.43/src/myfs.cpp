@@ -115,6 +115,8 @@ int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
     	//TODO: Free the taken DataPointer or else it will be lost forever
     	RETURN(-EFBIG);
     }
+    char emptyBlock[BLOCK_SIZE] = {0};
+    bd_fuse.write(DATA_START + dataPointers[0],emptyBlock);			//clean Block(it could have been used from deleted files)
     createNewInode(&bd_fuse, path+1, dataPointers[0], iNodePointer);
     writeFatEntries(&bd_fuse, dataPointers, 1);
     RETURN(0);
@@ -293,12 +295,11 @@ int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struc
  */
 int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
     LOGM();
-    LOGF("Path: %s ,Buffer zu Schreiben:, %s size : %ld , offset : %ld \n",path,buf,size,offset);
+    LOGF("Path: %s , size : %ld , offset : %ld \n",path,size,offset);
     FileHandleBuffer* fileBuffer = (FileHandleBuffer*)fileInfo->fh;
     uint32_t blockOffsetFirst = offset / BLOCK_SIZE;
     uint32_t blockOffsetLast = getMaxBlocksNeeded(size+offset);
     uint32_t byteOffsetFirst = offset - (blockOffsetFirst * BLOCK_SIZE);
-   // uint32_t blocksToWrite = getMaxBlocksNeeded(size);
     uint32_t writtenBytes = 0;
     if(fileBuffer->numDataPointers < blockOffsetLast) {													//Prüfen ob genug DataBlocks vorhanden sind.
     		LOGF("Wir brauchen mehr Pointer! %d neue Pointer \n",blockOffsetLast - fileBuffer->numDataPointers);
@@ -311,21 +312,31 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
     			//TODO: Alle Pointer freigeben die in anspruch genommen worden sind, wenn Datei zu groß ist!.
     			RETURN(EFBIG);
     		}
-    		uint32_t lastPointer = getRequestedDataPointer(fileBuffer,fileBuffer->numDataPointers - 1); //Suche letzten Pointer
+    		uint32_t lastPointer = getRequestedDataPointer(fileBuffer,fileBuffer->numDataPointers - 1); //Suche letzten Pointer bevor datei vergrößert wurde
     		fileBuffer->numDataPointers += amountOfPointersNeeded;										//Erhöhe Anzahl der DataPointers der Datei.
     		writeAdditionalFatEntries(&bd_fuse,lastPointer,newNeededPointers,amountOfPointersNeeded);	//Neue Pointer Eintragen in BlockDevice
     		uint32_t fatBlockOffset = fileBuffer->startDataPointer / (BLOCK_SIZE/POINTER_SIZE);
     		bd_fuse.read(FAT_START + fatBlockOffset,fileBuffer->fatBuffer);								//update buffer, sonst sind veraltete falsche Werte im Buffer
     		fileBuffer->fatBlockNumber = fatBlockOffset;
-    }
+    		for(uint32_t i = 0; i < amountOfPointersNeeded;i++) {
+    			lastPointer = nextDataPointer(fileBuffer,lastPointer);
+    		}
+    		char emptyBlock[BLOCK_SIZE] = {0};
+    		bd_fuse.write(DATA_START + lastPointer,emptyBlock);
+
+
+     }
 	 if(fileBuffer->relativeDataBlockNumber != blockOffsetFirst) {			//Angefragte Block befindet sich nicht im Buffer, dataPointer suchen und Block laden
-		 LOGF("RelativeBlockNumber != blockOffset!: %d != %d \n",fileBuffer->relativeDataBlockNumber,blockOffsetFirst);
-		 fileBuffer->currentDataPointer = getRequestedDataPointer(fileBuffer,blockOffsetFirst);
+		 if(fileBuffer->relativeDataBlockNumber + 1 == blockOffsetFirst) {
+			 fileBuffer->currentDataPointer = nextDataPointer(fileBuffer, fileBuffer->currentDataPointer);
+		 }else {
+			 LOGF("RelativeBlockNumber != blockOffset!: %d != %d \n",fileBuffer->relativeDataBlockNumber,blockOffsetFirst);
+			 fileBuffer->currentDataPointer = getRequestedDataPointer(fileBuffer,blockOffsetFirst);
+		 }
 		 fileBuffer->relativeDataBlockNumber = blockOffsetFirst;
 		 readFromFileBuffer(fileBuffer,&bd_fuse);
 	 }
-
-    while(writtenBytes < size) {
+	 while(writtenBytes < size) {											//Der eigentliche Schreibvorgang
 		 if(byteOffsetFirst + size - writtenBytes > BLOCK_SIZE && nextDataPointer(fileBuffer, fileBuffer->currentDataPointer) != 0xFFFFFFFF){
 				 memcpy(fileBuffer->dataBlockBuffer + byteOffsetFirst, buf + writtenBytes, BLOCK_SIZE - byteOffsetFirst);
 				 writeFromDataBufferToBlockDevice(fileBuffer,&bd_fuse);
@@ -340,24 +351,17 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
 				 writeFromDataBufferToBlockDevice(fileBuffer,&bd_fuse);
 			 }
     }
-	 if(nextDataPointer(fileBuffer,fileBuffer->currentDataPointer) != 0xFFFFFFFF) {			//Prepare next Requested block,if this is not the end of the file
-	 fileBuffer->currentDataPointer = nextDataPointer(fileBuffer,fileBuffer->currentDataPointer);
-	 fileBuffer->relativeDataBlockNumber += 1;
-	 readFromFileBuffer(fileBuffer,&bd_fuse);
-	 }
-	 //update  st_filesSize
-	 //update  st_blocks
-	 uint32_t lastPointer = getRequestedDataPointer(fileBuffer,fileBuffer->numDataPointers - 1);
-	 LOGF("LastPointer :%ld \n",lastPointer);
-	 uint32_t newFileSize = fileBuffer->numDataPointers * BLOCK_SIZE - unusedBytesInDataBlock(lastPointer);
-	 char inodeBlock[BLOCK_SIZE];
-	 readFromBuffer(INODE_START + fileBuffer->inodeNumber,inodeBlock,&bd_fuse);
-	 inode* node = (inode*)inodeBlock;
-	 node->st_blocks = fileBuffer->numDataPointers;
-	 node->st_size = newFileSize;
-	 writeToBuffer(INODE_START + fileBuffer->inodeNumber,inodeBlock,&bd_fuse);
-	 writeBufferToBlockDevice(&bd_fuse);	//Inode mit neuen Werten der Dateigröße und anzahl der benutzten DataBlöcke speichern.
-    RETURN(size);
+	uint32_t lastPointer = getRequestedDataPointer(fileBuffer,fileBuffer->numDataPointers - 1);
+	LOGF("LastPointer :%ld \n",lastPointer);
+	uint32_t newFileSize = fileBuffer->numDataPointers * BLOCK_SIZE - unusedBytesInDataBlock(lastPointer);
+	char inodeBlock[BLOCK_SIZE];
+	readFromBuffer(INODE_START + fileBuffer->inodeNumber,inodeBlock,&bd_fuse);
+	inode* node = (inode*)inodeBlock;
+	node->st_blocks = fileBuffer->numDataPointers;
+	node->st_size = newFileSize;
+	writeToBuffer(INODE_START + fileBuffer->inodeNumber,inodeBlock,&bd_fuse);
+	writeBufferToBlockDevice(&bd_fuse);	//Inode mit neuen Werten der Dateigröße und anzahl der benutzten DataBlöcke speichern.
+	RETURN(size);
 }
 
 int MyFS::fuseStatfs(const char *path, struct statvfs *statInfo) {
