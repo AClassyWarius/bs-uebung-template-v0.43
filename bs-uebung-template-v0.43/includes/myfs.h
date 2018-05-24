@@ -107,7 +107,7 @@ public:
     int checkFileExist(BlockDevice* bd,const char* path);
     u_int32_t getFreeInodePointer(BlockDevice* bd);
     int checkFreeDataSize(BlockDevice* bd, u_int32_t size);
-    u_int32_t getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray,uint32_t searchStartPosition);
+    u_int32_t getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray,uint32_t startPosition);
     u_int32_t getMaxBlocksNeeded(u_int32_t i);
     void writeFatEntries(BlockDevice* bd, u_int32_t* pointers, u_int32_t sizeOfArray);
     void superBlockNumFilesIncrease(BlockDevice* bd);

@@ -112,7 +112,7 @@ int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
     u_int32_t dataPointers[1];
     err = getFreeDataPointers(&bd_fuse, dataPointers,1,0);
     if(err) {
-    	//TODO: Free the taken DataPointer or else it will be lost forever
+    	//TODO: benutzten InodePointer freigeben!
     	RETURN(-EFBIG);
     }
     char emptyBlock[BLOCK_SIZE] = {0};
@@ -253,10 +253,13 @@ int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struc
 		 }
 		 char requestedData[size];
 		 size_t copiedBytes = 0;
-
-		 if(fileBuffer->relativeDataBlockNumber != blockOffset) {			//Angefragte Block befindet sich nicht im Buffer, dataPointer neu suchen und block laden
-			 LOGF("RelativeBlockNumber != blockOffset!: %d != %d \n",fileBuffer->relativeDataBlockNumber,blockOffset);
-			 fileBuffer->currentDataPointer = getRequestedDataPointer(fileBuffer,blockOffset);
+		 if(fileBuffer->relativeDataBlockNumber != blockOffset) {			//Angefragte Block befindet sich nicht im Buffer, dataPointer suchen und Block laden
+			 if(fileBuffer->relativeDataBlockNumber + 1 == blockOffset) {
+				 fileBuffer->currentDataPointer = nextDataPointer(fileBuffer, fileBuffer->currentDataPointer);
+			 }else {
+				 LOGF("RelativeBlockNumber != blockOffset!: %d != %d \n",fileBuffer->relativeDataBlockNumber,blockOffset);
+				 fileBuffer->currentDataPointer = getRequestedDataPointer(fileBuffer,blockOffset);
+			 }
 			 fileBuffer->relativeDataBlockNumber = blockOffset;
 			 readFromFileBuffer(fileBuffer,&bd_fuse);
 		 }
@@ -272,11 +275,6 @@ int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struc
 				 memcpy(requestedData + copiedBytes, fileBuffer->dataBlockBuffer + byteOffset, size - copiedBytes);
 				 copiedBytes += size;
 			 }
-		 }
-		 if(nextDataPointer(fileBuffer,fileBuffer->currentDataPointer) != 0xFFFFFFFF) {			//Prepare next Requested block,if this is not the end of the file
-		 fileBuffer->currentDataPointer = nextDataPointer(fileBuffer,fileBuffer->currentDataPointer);
-		 fileBuffer->relativeDataBlockNumber += 1;
-		 readFromFileBuffer(fileBuffer,&bd_fuse);
 		 }
 		 memcpy(buf,requestedData,size);
 	}else {
@@ -309,14 +307,12 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
 	}else {
 		lastPointer = fileBuffer->positionOfLastFoundPointer;
 	}
-	LOGF("lastPointer : %ld",lastPointer);
     if(fileBuffer->numDataPointers < blockOffsetLast) {													//Prüfen ob genug DataBlocks vorhanden sind.
     		LOGF("Wir brauchen mehr Pointer! %d neue Pointer \n",blockOffsetLast - fileBuffer->numDataPointers);
     		int err;
     		uint32_t amountOfPointersNeeded = blockOffsetLast - fileBuffer->numDataPointers;
     		uint32_t newNeededPointers[amountOfPointersNeeded];
     		err = getFreeDataPointers(&bd_fuse,newNeededPointers,amountOfPointersNeeded,fileBuffer->positionOfLastFoundPointer);
-    		//TODO: Wir sollten uns merken wo wir den letzten freien DataPointer gefunden haben, sonst quadratische laufzeit.
     		if(err) {
     			//TODO: Alle Pointer freigeben die in anspruch genommen worden sind, wenn Datei zu groß ist!.
     			RETURN(EFBIG);
@@ -698,6 +694,8 @@ void MyFS::deleteDMapEntries(uint32_t* dataPointerArray, uint32_t sizeOfArray) {
 
 /* Gibt die Anzahl der nicht benutzen Bytes in einem Block zurück.
  * Wird benötigt für fuseWrite(), um die neue Dateigröße genau zu bestimmen.
+ * TODO:: Wenn Block Komplett leer ist, vorherige Block aufrufen und da nachgucken.
+ * Alle leeren Blocks müssen rausgeschmissen werden. Vllt fuseTruncate() aufrufen hierfür?
  *
  * @param dataPointer - Letzter geschriebener Block.
  * @return - Anzahl nicht benutzer Bytes im Block.
@@ -766,7 +764,7 @@ void MyFS::createNewInode(BlockDevice* bd, const char* path, u_int32_t dataPoint
     node->st_size = 0;										/* total size, in bytes */
     node->user_id = getuid();								/* user ID of owner */
     node->grp_id = getgid();								/* group ID of owner */
-    node->protection = (S_IFREG | 0777);                    /* protection */
+    node->protection = (S_IFREG | 0777);                    /* protection lesen und schreiben für alle, TODO: soll das so sein?*/
     node->atime = time(0);                                  /* time of last access */
     node->ctime = time(0);                                  /* time of last status change */
     node->mtime = time(0);                      	        /* time of last modification */
@@ -922,27 +920,31 @@ int MyFS::writeBufferToBlockDevice(BlockDevice* bd) {
  * @param bd - BlockDevice, aus dem gelesen und geschrieben wird.
  * @param pointerArray - Das Array welches ausgefüllt werden soll mit DataPointers.
  * @param sizeOfArray - Die Anzahl der DataPointer im Array die gespeichert werden sollen.
+ * @param startPosition - Position ab der gesucht werden soll.
  * @return - 0 bei erfolgreichen füllen, return < 0 wenn nicht genügend DataBlocks vorhanden sind(Sollte !NIEMALS!
  * passieren, da vorher schon
  * geprüft wurde ob überhaupt genug DataBlocks vorhanden sind. Wenn es trotzdem dazu kommt, werden die neuen Einträge
  * nicht rückgängig gemacht
- * und es werden DataBlocks als besetzt markiert, die niemanden gehören.
+ * und es werden DataBlocks als besetzt markiert, die niemanden gehören.(Achtung, gilt nur für mkfs.myfs! Bei mount.myfs kann nicht
+ * geprüft werden für fuseWrite() ob vor dem Schreibvorgang genug Platz da ist.)
 */
-u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray,uint32_t searchStartPosition) {
+u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray,uint32_t startPosition) {
     char dataDMap[BLOCK_SIZE] = {0};
     u_int8_t bitMask;
     u_int32_t counter = 0;
-    uint32_t blockOffset = searchStartPosition / (BLOCK_SIZE * 8);
+    uint32_t blockOffset = startPosition / (BLOCK_SIZE * 8);
+    uint32_t byteOffset = (startPosition - blockOffset * (BLOCK_SIZE * 8)) / 8 ;
+    uint32_t bitOffset = startPosition - (blockOffset * (BLOCK_SIZE * 8) + byteOffset * 8);
     for (u_int32_t blockNumber = blockOffset; blockNumber < NUMB_OF_DATA_MAP_BLOCKS; blockNumber++) {
         bd->read(DATA_MAP_START + blockNumber, dataDMap);
 
-        for (int byte = 0; byte < BLOCK_SIZE; byte++) {
+        for (int byte = byteOffset; byte < BLOCK_SIZE; byte++) {
             bitMask = 0x80;
-            for (int offSet = 0; offSet < 8; offSet++) {
+            for (int bit = bitOffset; bit < 8; bit++) {
                 if ((dataDMap[byte] & bitMask) == 0) {
                     dataDMap[byte] |= bitMask;
                     writeToBuffer(DATA_MAP_START + blockNumber, dataDMap, bd);
-                    pointerArray[counter] = offSet + byte * 8 + blockNumber * BLOCK_SIZE * 8;
+                    pointerArray[counter] = bit + byte * 8 + blockNumber * BLOCK_SIZE * 8;
                     counter++;
                     if (counter == sizeOfArray) {
                         writeBufferToBlockDevice(bd);
@@ -951,7 +953,9 @@ u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_
                 }
                 bitMask >>= 1;
             }
+            bitOffset = 0;
         }
+        byteOffset = 0;
     }
     return -(EFBIG);
 }
