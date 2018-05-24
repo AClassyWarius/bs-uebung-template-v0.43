@@ -10,7 +10,7 @@
 
 #undef DEBUG
 
-// TODO: Comment this to reduce debug messages
+//Comment this to reduce debug messages
 #define DEBUG
 #define DEBUG_METHODS
 #define DEBUG_RETURN_VALUES
@@ -49,8 +49,6 @@ MyFS::~MyFS() {
  */
 int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
     LOGM();
-    // TODO: Implement this!
-
     statbuf->st_uid = getuid();     /* The owner of the file/directory is the user who mountned the filesystem */
     statbuf->st_gid = getgid();     /* The group of the file/directory is the same as the group of the user who mounted
                                      the filesystem */
@@ -168,6 +166,7 @@ int MyFS::fuseSymlink(const char *path, const char *link) {
 
 int MyFS::fuseRename(const char *path, const char *newpath) {
     //LOGM();
+	//TODO
     return 0;
 }
 
@@ -412,11 +411,7 @@ int MyFS::fuseOpendir(const char *path, struct fuse_file_info *fileInfo) {
 
 int MyFS::fuseReaddir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fileInfo) {
     LOGM();
-    
     LOGF("\n<--- Getting the list of files of %s --->\n", path);
-    
-    // TODO: Implement this!
-    
     filler(buf, ".", NULL, 0);
     filler(buf, "..", NULL, 0);
     
@@ -685,7 +680,6 @@ void MyFS::deleteDMapEntries(uint32_t* dataPointerArray, uint32_t sizeOfArray) {
     	bitOffset = dataPointerArray[i] - ((blockOffset * BLOCK_SIZE * 8) + (byteOffset * 8));
     	bitMask = 0x80 >> bitOffset;
     	bitMask = ~bitMask;
-    	LOGF("Lösche Pointer %d",dataPointerArray[i]);
     	dataDMap[byteOffset] &= bitMask;
     	writeToBuffer(DATA_MAP_START + blockOffset,dataDMap,&bd_fuse);
     }
