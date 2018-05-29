@@ -7,6 +7,7 @@ bs-uebung-template-v0.43/testfiles/*
 bs-uebung-template-v0.43/obj/*
 bs-uebung-template-v0.43/mount.myfs
 bs-uebung-template-v0.43/mkfs.myfs
+bs-uebung-template-v0.43/unittest
 bs-uebung-template-v0.43/log.txt
 
 
