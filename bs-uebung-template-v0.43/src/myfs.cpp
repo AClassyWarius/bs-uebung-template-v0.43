@@ -89,7 +89,7 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
             }
         }
     }
-    return -(ENOENT);
+    RETURN(-ENOENT);
 
 }
 
@@ -150,7 +150,7 @@ int MyFS::fuseUnlink(const char *path) {
     	free(allDataPointers);
     	RETURN(0);
     }
-    RETURN(-(ENOENT));
+    RETURN(-ENOENT);
 }
 
 
@@ -169,6 +169,9 @@ int MyFS::fuseRename(const char *path, const char *newpath) {
     if(strlen(newpath + 1) >= NAME_LENGTH) {
 	   RETURN(-ENAMETOOLONG);
     }
+    if(checkFileExist(&bd_fuse, newpath +1) >= 0) {
+    	RETURN(-EEXIST);
+    }
     int inodeNumber = checkFileExist(&bd_fuse,path+1);
     if(inodeNumber < 0) {
     	RETURN(-ENOENT);
@@ -176,6 +179,7 @@ int MyFS::fuseRename(const char *path, const char *newpath) {
     char nodeBlock[BLOCK_SIZE];
     readFromBuffer(INODE_START + inodeNumber,nodeBlock,&bd_fuse);
     inode* node = (inode*)nodeBlock;
+    memset(&node->file_name[0], 0, sizeof(node->file_name));		//empty old name
     strcpy(node->file_name,newpath + 1);
     writeToBuffer(INODE_START + inodeNumber,nodeBlock,&bd_fuse);
     writeBufferToBlockDevice(&bd_fuse);
@@ -217,7 +221,7 @@ int MyFS::fuseOpen(const char *path, struct fuse_file_info *fileInfo) {
     LOGM();
     uint32_t inodeNumber = checkFileExist(&bd_fuse,path+1);
     if(inodeNumber < 0) {
-    	RETURN(-(ENOENT))
+    	RETURN(-ENOENT);
     }
     char block [BLOCK_SIZE];
     FileHandleBuffer* fileBuffer = new FileHandleBuffer;
@@ -325,8 +329,7 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
     		uint32_t newNeededPointers[amountOfPointersNeeded];
     		err = getFreeDataPointers(&bd_fuse,newNeededPointers,amountOfPointersNeeded,fileBuffer->positionOfLastFoundPointer);
     		if(err) {
-    			//TODO: Alle Pointer freigeben die in anspruch genommen worden sind, wenn Datei zu groß ist!.
-    			RETURN(EFBIG);
+    			RETURN(-EFBIG);
     		}																							 //Suche letzten Pointer bevor datei vergrößert wurde
     		fileBuffer->numDataPointers += amountOfPointersNeeded;										//Erhöhe Anzahl der DataPointers der Datei.
     		writeAdditionalFatEntries(&bd_fuse,lastPointer,newNeededPointers,amountOfPointersNeeded);	//Neue Pointer Eintragen in BlockDevice
@@ -461,7 +464,7 @@ int MyFS::fuseFsyncdir(const char *path, int datasync, struct fuse_file_info *fi
 }
 
 int MyFS::fuseTruncate(const char *path, off_t offset, struct fuse_file_info *fileInfo) {
-    //LOGM();
+    LOGM();
     return 0;
 }
 
@@ -936,16 +939,16 @@ int MyFS::writeBufferToBlockDevice(BlockDevice* bd) {
 */
 u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_int32_t sizeOfArray,uint32_t startPosition) {
     char dataDMap[BLOCK_SIZE] = {0};
-    u_int8_t bitMask;
+
     u_int32_t counter = 0;
     uint32_t blockOffset = startPosition / (BLOCK_SIZE * 8);
     uint32_t byteOffset = (startPosition - blockOffset * (BLOCK_SIZE * 8)) / 8 ;
     uint32_t bitOffset = startPosition - (blockOffset * (BLOCK_SIZE * 8) + byteOffset * 8);
+    u_int8_t bitMask = 0x80;
+    bitMask >>= bitOffset;
     for (u_int32_t blockNumber = blockOffset; blockNumber < NUMB_OF_DATA_MAP_BLOCKS; blockNumber++) {
         bd->read(DATA_MAP_START + blockNumber, dataDMap);
-
         for (int byte = byteOffset; byte < BLOCK_SIZE; byte++) {
-            bitMask = 0x80;
             for (int bit = bitOffset; bit < 8; bit++) {
                 if ((dataDMap[byte] & bitMask) == 0) {
                     dataDMap[byte] |= bitMask;
@@ -960,8 +963,22 @@ u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_
                 bitMask >>= 1;
             }
             bitOffset = 0;
+            bitMask = 0x80;
         }
         byteOffset = 0;
+    }
+    //TODO:: In Case of Error, all taken DataPointers in pointerArray must be Freed!!!!,slow lazy solution
+    while(counter > 0) {
+    	counter--;
+    	blockOffset = pointerArray[counter] / (BLOCK_SIZE * 8);
+    	byteOffset = (pointerArray[counter] - blockOffset * (BLOCK_SIZE * 8)) / 8 ;
+    	bitOffset = pointerArray[counter] - (blockOffset * (BLOCK_SIZE * 8) + byteOffset * 8);
+    	bd->read(DATA_MAP_START + blockOffset, dataDMap);
+    	bitMask = 0x80;
+    	bitMask >>= bitOffset;
+    	dataDMap[byteOffset] ^= bitMask;
+    	writeToBuffer(DATA_MAP_START + blockOffset, dataDMap, bd);
+    	writeBufferToBlockDevice(bd);
     }
     return -(EFBIG);
 }
