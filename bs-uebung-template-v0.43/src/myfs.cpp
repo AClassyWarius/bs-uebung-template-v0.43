@@ -165,9 +165,21 @@ int MyFS::fuseSymlink(const char *path, const char *link) {
 }
 
 int MyFS::fuseRename(const char *path, const char *newpath) {
-    //LOGM();
-	//TODO
-    return 0;
+    LOGM();
+    if(strlen(newpath + 1) >= NAME_LENGTH) {
+	   RETURN(-ENAMETOOLONG);
+    }
+    int inodeNumber = checkFileExist(&bd_fuse,path+1);
+    if(inodeNumber < 0) {
+    	RETURN(-ENOENT);
+    }
+    char nodeBlock[BLOCK_SIZE];
+    readFromBuffer(INODE_START + inodeNumber,nodeBlock,&bd_fuse);
+    inode* node = (inode*)nodeBlock;
+    strcpy(node->file_name,newpath + 1);
+    writeToBuffer(INODE_START + inodeNumber,nodeBlock,&bd_fuse);
+    writeBufferToBlockDevice(&bd_fuse);
+    RETURN(0);
 }
 
 int MyFS::fuseLink(const char *path, const char *newpath) {
