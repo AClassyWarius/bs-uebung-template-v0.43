@@ -61,7 +61,7 @@ int MyFS::fuseGetattr(const char *path, struct stat *statbuf) {
 
     if (strcmp(path, "/") == 0) {
         LOGF("\n<--- Write st_mode and st_nlink for: %s --->\n", path);
-        statbuf->st_mode = S_IFDIR | 0555;
+        statbuf->st_mode = S_IFDIR | 0755;
         statbuf->st_nlink = 2;
         return 0;
     }
@@ -166,15 +166,16 @@ int MyFS::fuseSymlink(const char *path, const char *link) {
 
 int MyFS::fuseRename(const char *path, const char *newpath) {
     LOGM();
+    LOGF("Rename file : %s , to %s ",path, newpath);
     if(strlen(newpath + 1) >= NAME_LENGTH) {
 	   RETURN(-ENAMETOOLONG);
-    }
-    if(checkFileExist(&bd_fuse, newpath +1) >= 0) {
-    	RETURN(-EEXIST);
     }
     int inodeNumber = checkFileExist(&bd_fuse,path+1);
     if(inodeNumber < 0) {
     	RETURN(-ENOENT);
+    }
+    if(checkFileExist(&bd_fuse, newpath +1) >= 0) {
+    	fuseUnlink(newpath);
     }
     char nodeBlock[BLOCK_SIZE];
     readFromBuffer(INODE_START + inodeNumber,nodeBlock,&bd_fuse);
