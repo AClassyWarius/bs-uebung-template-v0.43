@@ -115,7 +115,14 @@ int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
     u_int32_t dataPointers[1];
     err = getFreeDataPointers(&bd_fuse, dataPointers,1,0);
     if(err) {
-    	//TODO: benutzten InodePointer freigeben!
+    	char iMapBlock[BLOCK_SIZE];
+    	bd_fuse.read(INDOE_MAP_START,iMapBlock);				//iMap bit der Datei finden
+    	uint32_t byteOffset = iNodePointer / 8;
+    	uint32_t bitOffset = iNodePointer - byteOffset * 8;
+    	uint8_t bitMask = 0x80 >> bitOffset;
+    	bitMask = ~bitMask;
+    	iMapBlock[byteOffset] &= bitMask;						//bit auf 0 setzen
+    	bd_fuse.write(INDOE_MAP_START, iMapBlock);
     	RETURN(-EFBIG);
     }
     char emptyBlock[BLOCK_SIZE] = {0};
@@ -1000,15 +1007,25 @@ u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_
         byteOffset = 0;
     }
     // In Case of Error, all taken DataPointers in pointerArray must be Freed!!!!,slow lazy solution
+    // TODO: There is a error here somewhere...
+    LOG("Not enough Pointer");
     while(counter > 0) {
     	counter--;
+    	LOGF("DELETE DMAP ENTRY : %d \n",pointerArray[counter]);
     	blockOffset = pointerArray[counter] / (BLOCK_SIZE * 8);
+    	LOGF("blockOffset : %d \n",blockOffset);
     	byteOffset = (pointerArray[counter] - blockOffset * (BLOCK_SIZE * 8)) / 8 ;
+    	LOGF("byteOffset : %d \n",byteOffset);
     	bitOffset = pointerArray[counter] - (blockOffset * (BLOCK_SIZE * 8) + byteOffset * 8);
+    	LOGF("bitOffset : %d \n",bitOffset);
     	bd->read(DATA_MAP_START + blockOffset, dataDMap);
     	bitMask = 0x80;
+    	LOGF("bitOffset : %d \n",bitMask);
     	bitMask >>= bitOffset;
-    	dataDMap[byteOffset] ^= bitMask;
+    	bitMask = ~bitMask;
+    	LOGF("bitOffset : %d \n",bitMask);
+    	dataDMap[byteOffset] &= bitMask;
+    	LOGF("char : %d \n",dataDMap[byteOffset]);
     	writeToBuffer(DATA_MAP_START + blockOffset, dataDMap, bd);
     	writeBufferToBlockDevice(bd);
     }
