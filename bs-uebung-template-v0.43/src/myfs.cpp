@@ -10,7 +10,7 @@
 
 #undef DEBUG
 
-//Comment this to reduce debug messages
+// Comment this to reduce debug messages
 #define DEBUG
 #define DEBUG_METHODS
 #define DEBUG_RETURN_VALUES
@@ -101,8 +101,13 @@ int MyFS::fuseReadlink(const char *path, char *link, size_t size) {
 
 int MyFS::fuseMknod(const char *path, mode_t mode, dev_t dev) {
     LOGM();
+    LOGF("Mode : %o \n",mode);
     LOGF("path: %s, mode: %ld , dev %ld",path,mode,dev);
     int err;
+    err = checkFileExist(&bd_fuse, path + 1);
+    if(err >= 0) {
+    	RETURN(-EEXIST);
+    }
     u_int32_t iNodePointer = getFreeInodePointer(&bd_fuse);
     if (iNodePointer == 0xFFFFFFFF) {
     	RETURN(-ENOSPC);
@@ -236,6 +241,9 @@ int MyFS::fuseOpen(const char *path, struct fuse_file_info *fileInfo) {
     fileBuffer->startDataPointer = node->first_data_block;							//relative DataBlock-Nummer eintragen
     fileBuffer->currentDataPointer = node->first_data_block;						//ersten DataPointer in fileBuffer schreiben
     fileBuffer->numDataPointers = node->st_blocks;
+    fileBuffer->protection = node->protection;
+    fileBuffer->user_id = node->user_id;
+    fileBuffer->grp_id = node->grp_id;
     bd_fuse.read(DATA_START + node->first_data_block,fileBuffer->dataBlockBuffer);	//ersten dataBlock in fileBuffer schreiben
     uint32_t fatBlockOffset = node->first_data_block / (BLOCK_SIZE/POINTER_SIZE);
     bd_fuse.read(FAT_START + fatBlockOffset,fileBuffer->fatBuffer);					//fatBlock mit ersten DataPointer Eintrag in Buffer schreiben
@@ -309,8 +317,11 @@ int MyFS::fuseRead(const char *path, char *buf, size_t size, off_t offset, struc
  */
 int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
     LOGM();
-    LOGF("Path: %s , size : %ld , offset : %ld \n",path,size,offset);
     FileHandleBuffer* fileBuffer = (FileHandleBuffer*)fileInfo->fh;
+	if(!permissionToWrite(fileBuffer->user_id, fileBuffer->grp_id, fileBuffer->protection)) {
+		RETURN(-EPERM);
+	}
+    LOGF("Path: %s , size : %ld , offset : %ld \n",path,size,offset);
     uint32_t blockOffsetFirst = offset / BLOCK_SIZE;
     uint32_t blockOffsetLast = getMaxBlocksNeeded(size+offset);
     uint32_t byteOffsetFirst = offset - (blockOffsetFirst * BLOCK_SIZE);
@@ -372,7 +383,6 @@ int MyFS::fuseWrite(const char *path, const char *buf, size_t size, off_t offset
     }
 	 LOGF("numDataPointers : %ld , posOfLastPointer: %ld", fileBuffer->numDataPointers, fileBuffer->positionOfLastFoundPointer);
 	uint32_t newFileSize = fileBuffer->numDataPointers * BLOCK_SIZE - unusedBytesInDataBlock(fileBuffer->positionOfLastFoundPointer);
-	LOG("Test 2");
 	char inodeBlock[BLOCK_SIZE];
 	readFromBuffer(INODE_START + fileBuffer->inodeNumber,inodeBlock,&bd_fuse);
 	inode* node = (inode*)inodeBlock;
@@ -526,6 +536,27 @@ int MyFS::fuseGetxattr(const char *path, const char *name, char *value, size_t s
 }
         
 //---------------Methoden die nur für mount.myfs benötigt werden---------------//
+/*
+ *
+ */
+int MyFS::permissionToWrite(uid_t user_id, gid_t grp_id, mode_t protection) {
+		LOGM();
+		if(user_id == getuid()) {
+			if((protection & S_IWUSR) == S_IWUSR) {
+				RETURN(1);
+
+			}
+		}
+		if(grp_id == getgid()) {
+			if((protection & S_IWGRP) == S_IWGRP) {
+						RETURN (1);
+					}
+		}
+		if((protection & S_IWOTH) == S_IWOTH) {
+			RETURN (1);
+		}
+		RETURN (0);
+}
 
 /* List aus dem SuperBlock die Anzahl der vorhandenden Dateien im BlockDevice
  *
@@ -968,7 +999,7 @@ u_int32_t MyFS::getFreeDataPointers(BlockDevice* bd, u_int32_t* pointerArray, u_
         }
         byteOffset = 0;
     }
-    //TODO:: In Case of Error, all taken DataPointers in pointerArray must be Freed!!!!,slow lazy solution
+    // In Case of Error, all taken DataPointers in pointerArray must be Freed!!!!,slow lazy solution
     while(counter > 0) {
     	counter--;
     	blockOffset = pointerArray[counter] / (BLOCK_SIZE * 8);
@@ -1077,7 +1108,7 @@ void MyFS::createInodeBlock(BlockDevice* bd, char* path, u_int32_t dataPointer, 
  * @param bd - BlockDevice in dem die Namen in den Inodes geprüft werden.
  * @return - true wenn ein Dateiname bereits vorhanden ist, false wenn nicht vorhanden.
 */
-int MyFS::checkFileExist(BlockDevice* bd,const char* path) {
+int MyFS::checkFileExist(BlockDevice* bd, const char* path) {
     char dataIMap[BLOCK_SIZE] = {0};
     char buffer[BLOCK_SIZE] = {0};
         

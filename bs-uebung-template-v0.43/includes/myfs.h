@@ -44,6 +44,9 @@ private:
     	uint32_t numDataPointers = 0;
     	char dataBlockBuffer[BLOCK_SIZE] = {0};
     	char fatBuffer[BLOCK_SIZE] = {0};
+    	mode_t protection;
+    	uid_t user_id;
+    	gid_t grp_id;
     };
 
 public:
@@ -127,6 +130,7 @@ public:
     void writeFromDataBufferToBlockDevice(FileHandleBuffer* fhb, BlockDevice* bd);
     uint32_t unusedBytesInDataBlock(uint32_t dataPointer);
     void writeAdditionalFatEntries(BlockDevice* bd, uint32_t lastPointer, u_int32_t* pointers, u_int32_t sizeOfArray);
+    int permissionToWrite(uid_t user_id, gid_t grp_id, mode_t protection);
 };
 
 #endif /* myfs_h */
